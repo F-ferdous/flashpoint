@@ -20,6 +20,45 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Firebase Setup
+
+This project includes the Firebase Web SDK and a client initializer at `src/lib/firebase.ts`.
+
+1. Copy environment template and fill with your Firebase web app config (from Firebase Console → Project settings → General → Your apps):
+
+   ```bash
+   cp env.example .env.local
+   ```
+
+2. Set the following variables in `.env.local`:
+
+   - `NEXT_PUBLIC_FIREBASE_API_KEY`
+   - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+   - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+   - `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+   - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+   - `NEXT_PUBLIC_FIREBASE_APP_ID`
+
+3. Use Firebase services in client components (App Router):
+
+   ```tsx
+   'use client'
+   import { auth, db, storage } from '@/lib/firebase'
+   import { onAuthStateChanged } from 'firebase/auth'
+   import { useEffect, useState } from 'react'
+
+   export default function FirebaseClientExample() {
+     const [uid, setUid] = useState<string | null>(null)
+     useEffect(() => onAuthStateChanged(auth, (u) => setUid(u?.uid ?? null)), [])
+     return <pre>UID: {uid ?? 'signed out'}</pre>
+   }
+   ```
+
+Notes:
+
+- The file `src/lib/firebase.ts` initializes the client SDK and exports `auth`, `db`, and `storage`.
+- Only import Firebase client SDK in client components (`'use client'`). For server-side admin features you would use the Firebase Admin SDK (not included here).
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

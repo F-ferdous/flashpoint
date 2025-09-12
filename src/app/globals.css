@@ -1,8 +1,39 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Default: Light theme (eye-comfortable) */
+  /* Light background: solid + gradient (solid is fallback) */
+  --background-solid: hsla(0, 41%, 95%, 1); /* #F7ECEC */
+  --background-gradient: linear-gradient(90deg, hsla(0, 41%, 95%, 1) 0%, hsla(205, 71%, 86%, 1) 100%);
+  /* Retain a direct token for places explicitly using --background */
+  --background: var(--background-solid);
+  --surface: #fafcff; /* subtle cool off-white */
+  --surface-2: #f4f7fc; /* subtle deeper cool surface */
+  --foreground: #0b0b0c; /* blackish */
+  --logo-flash: #0b0b0c; /* Flash text color in light mode */
+
+  /* Brand yellow (LIGHT MODE): updated to #dca920 */
+  --brand: #dca920; /* primary accent in light mode */
+  --brand-900: #7a5a07; /* optional deep shade (approx) */
+  --brand-700: #a47f12; /* optional mid shade (approx) */
+  --brand-300: #f3d37a; /* optional light shade (approx) */
+  --brand-15: rgba(220, 169, 32, 0.15);
+  --brand-25: rgba(220, 169, 32, 0.25);
+  --brand-35: rgba(220, 169, 32, 0.35);
+  --brand-45: rgba(220, 169, 32, 0.45);
+  --brand-60: rgba(220, 169, 32, 0.60);
+
+  /* Legacy palette kept for sections used elsewhere */
+  --c1: #799EFF; /* blue */
+  --c2: #FEFFC4; /* lemon milk */
+  --c3: #FFDE63; /* gold light */
+  --c4: #FFBC4C; /* orange */
+
+  /* Alpha tints for section backgrounds */
+  --c1a: rgba(121, 158, 255, 0.08);
+  --c2a: rgba(254, 255, 196, 0.18);
+  --c3a: rgba(255, 222, 99, 0.12);
+  --c4a: rgba(255, 188, 76, 0.10);
 }
 
 @theme inline {
@@ -12,15 +43,121 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Dark theme overrides (activated via .theme-dark on html) */
+.theme-dark {
+  /* Dark stays solid */
+  --background-solid: #0a0a0a;
+  --background-gradient: none;
+  --background: #0a0a0a;
+  /* Preserve previous brand in dark mode */
+  --brand: #f5c33b;
+  --brand-15: rgba(245, 195, 59, 0.15);
+  --brand-25: rgba(245, 195, 59, 0.25);
+  --brand-35: rgba(245, 195, 59, 0.35);
+  --brand-45: rgba(245, 195, 59, 0.45);
+  --brand-60: rgba(245, 195, 59, 0.60);
+  --surface: #121212;
+  --surface-2: #181818;
+  --foreground: #f5f5f5;
+  --logo-flash: #ffffff; /* Flash text color in dark mode */
+
+  /* Slightly stronger section tints in dark */
+  --c1a: rgba(121, 158, 255, 0.10);
+  --c2a: rgba(254, 255, 196, 0.22);
+  --c3a: rgba(255, 222, 99, 0.16);
+  --c4a: rgba(255, 188, 76, 0.14);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  /* Use color + image separately so 'none' image doesn't clear color in dark mode */
+  background-color: var(--background-solid);
+  background-image: var(--background-gradient);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Section tint utilities */
+.tint-c1 { background: var(--c1a); }
+.tint-c2 { background: var(--c2a); }
+.tint-c3 { background: var(--c3a); }
+.tint-c4 { background: var(--c4a); }
+
+/* Rounded and focus styles for pills/buttons */
+.btn-pill {
+  border-radius: 9999px;
+}
+.focus-ring {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.06), 0 0 0 1.5px var(--foreground);
+}
+
+/* Brand utilities */
+.btn-brand {
+  background: var(--brand);
+  color: #111; /* high contrast on yellow */
+}
+.btn-brand-outline {
+  border: 1px solid var(--brand);
+  color: var(--foreground);
+}
+.chip-brand {
+  background: var(--brand-15);
+  border: 1px solid var(--brand-25);
+  color: var(--foreground);
+}
+
+/* Logo helper */
+.logo-flash { color: var(--logo-flash); }
+
+/* Glow helpers */
+.glow-brand {
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.06),
+    0 10px 30px -10px var(--brand-25),
+    0 0 60px -20px var(--brand-25);
+}
+
+/* Simple animation helpers (CSS-only) */
+.animate-fade-in { animation: fadeIn .6s ease-out both; }
+.animate-rise { animation: rise .7s ease-out both; }
+
+/* Keyframe animations used by components */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(16px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Global interactive cursor styling */
+button,
+[type="button"],
+[type="submit"],
+[role="button"],
+.btn,
+.btn-pill,
+.btn-brand,
+.btn-brand-outline,
+.icon-button,
+.action {
+  cursor: pointer;
 }
