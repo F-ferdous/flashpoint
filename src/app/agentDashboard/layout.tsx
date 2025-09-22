@@ -10,14 +10,16 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Users, ShieldCheck, Gift, Wallet } from "lucide-react";
+import { Users, Gift, Wallet, User, ArrowLeftRight } from "lucide-react";
 import { ToastProvider, Toaster, useToast } from "@/components/ui/toast";
+import { useI18n } from "@/lib/i18n";
 
 const navItems = [
-  { href: "/agentDashboard/customers", label: "Customers", icon: Users, tone: { bg: "bg-sky-500/15", text: "text-sky-600 dark:text-sky-300" } },
-  { href: "/agentDashboard/verify", label: "Verify", icon: ShieldCheck, tone: { bg: "bg-amber-500/15", text: "text-amber-700 dark:text-amber-300" } },
-  { href: "/agentDashboard/referals", label: "Referals", icon: Gift, tone: { bg: "bg-violet-500/15", text: "text-violet-600 dark:text-violet-300" } },
-  { href: "/agentDashboard/earnings", label: "Earnings", icon: Wallet, tone: { bg: "bg-emerald-500/15", text: "text-emerald-600 dark:text-emerald-300" } },
+  { href: "/agentDashboard/customers", k: "dash.agent.nav.customers", icon: Users, tone: { bg: "bg-sky-500/15", text: "text-sky-600 dark:text-sky-300" } },
+  { href: "/agentDashboard/referals", k: "dash.agent.nav.referals", icon: Gift, tone: { bg: "bg-violet-500/15", text: "text-violet-600 dark:text-violet-300" } },
+  { href: "/agentDashboard/earnings", k: "dash.agent.nav.earnings", icon: Wallet, tone: { bg: "bg-emerald-500/15", text: "text-emerald-600 dark:text-emerald-300" } },
+  { href: "/agentDashboard/transfer", k: "dash.agent.nav.transfer", icon: ArrowLeftRight, tone: { bg: "bg-amber-500/15", text: "text-amber-700 dark:text-amber-300" } },
+  { href: "/agentDashboard/profile", k: "dash.agent.nav.profile", icon: User, tone: { bg: "bg-blue-500/15", text: "text-blue-600 dark:text-blue-300" } },
 ];
 
 export default function AgentLayout({ children }: { children: React.ReactNode }) {
@@ -25,14 +27,25 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(null);
+  const { t } = useI18n();
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
-      if (!user) {
+      const email = user?.email ?? "";
+      const ADMIN = "admin@fsalbd.com";
+      const AGENT = "agent@fsalbd.com";
+      const USER = "user@fsalbd.com";
+      if (!email) {
         router.replace("/login");
-      } else {
-        setEmail(user.email ?? null);
+      } else if (email === AGENT) {
+        setEmail(email);
         setLoading(false);
+      } else if (email === ADMIN) {
+        router.replace("/admin");
+      } else if (email === USER) {
+        router.replace("/userDashboard");
+      } else {
+        router.replace("/login");
       }
     });
     return () => unsub();
@@ -45,7 +58,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
           <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M21 12a9 9 0 1 1-6.219-8.56" />
           </svg>
-          Loading dashboard...
+          {t("dash.common.loading_dashboard")}
         </div>
       </div>
     );
@@ -62,11 +75,11 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
           <Link href="/agentDashboard" className="font-semibold tracking-tight">
             <span className="logo-flash">Flash</span>
             <span style={{ color: "var(--brand)" }}>Point</span>
-            <Badge className="ml-2" variant="secondary">Agent</Badge>
+            <Badge className="ml-2" variant="secondary">{t("dash.common.agent_badge")}</Badge>
           </Link>
           <div className="flex items-center gap-3 text-xs sm:text-sm">
             {email && <span className="text-foreground/80 truncate max-w-[10rem]" title={email}>{email}</span>}
-            <Link href="/" className="hover:opacity-80">Back to site</Link>
+            <Link href="/" className="hover:opacity-80">{t("dash.common.back_to_site")}</Link>
           </div>
         </div>
         <nav className="mx-auto max-w-7xl px-2 pb-2 overflow-x-auto">
@@ -89,7 +102,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
                       <span className={`grid place-items-center rounded-md p-1 ${item.tone.bg}`}>
                         <Icon className="h-3.5 w-3.5" />
                       </span>
-                      {item.label}
+                      {t(item.k)}
                     </span>
                   </Link>
                 </li>
@@ -119,7 +132,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
                 </g>
               </svg>
             </div>
-            <div className="font-semibold leading-none">Agent</div>
+            <div className="font-semibold leading-none">{t("dash.common.agent_badge")}</div>
           </Link>
           {email && (
             <div className="mt-2 px-2 text-xs text-foreground/70 truncate" title={email}>{email}</div>
@@ -143,7 +156,7 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
                       <span className={`grid place-items-center rounded-md p-1.5 ${item.tone.bg} ${item.tone.text}`}>
                         <Icon className="h-4 w-4" />
                       </span>
-                      <span className={active ? "font-semibold" : undefined}>{item.label}</span>
+                      <span className={active ? "font-semibold" : undefined}>{t(item.k)}</span>
                     </Link>
                   </li>
                 );
@@ -170,20 +183,21 @@ export default function AgentLayout({ children }: { children: React.ReactNode })
 function SidebarLogout() {
   const { toast } = useToast();
   const router = useRouter();
+  const { t } = useI18n();
   return (
     <Button
       className="w-full bg-[var(--brand)] text-black hover:brightness-110"
       onClick={async () => {
         try {
           await signOut(auth);
-          toast({ title: "Signed out", variant: "success" });
+          toast({ title: t("dash.common.signed_out"), variant: "success" });
           router.replace("/login");
         } catch (e) {
-          toast({ title: "Failed to sign out", variant: "destructive" });
+          toast({ title: t("dash.common.sign_out_failed"), variant: "destructive" });
         }
       }}
     >
-      Log out
+      {t("dash.common.logout")}
     </Button>
   );
 }

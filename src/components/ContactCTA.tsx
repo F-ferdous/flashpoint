@@ -1,6 +1,9 @@
+"use client";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n";
 
 export default function ContactCTA() {
+  const { t } = useI18n();
   return (
     <section id="contact" className="relative overflow-hidden bg-[var(--background)]">
       {/* Ambient arcs and glow */}
@@ -30,10 +33,10 @@ export default function ContactCTA() {
 
         {/* Heading */}
         <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-          Ready to <span className="bg-gradient-to-r from-fuchsia-400 via-rose-300 to-[var(--brand)] bg-clip-text text-transparent">get in touch</span>?
+          {t("contact.heading_p1")}<span className="bg-gradient-to-r from-fuchsia-400 via-rose-300 to-[var(--brand)] bg-clip-text text-transparent">{t("contact.heading_highlight")}</span>{t("contact.heading_p2")}
         </h2>
         <p className="mt-2 text-sm text-foreground/70 max-w-xl mx-auto">
-          No links wired yet — this is a UI-only landing page.
+          {t("contact.note")}
         </p>
 
         {/* CTA */}
@@ -41,7 +44,7 @@ export default function ContactCTA() {
           <Link href="#" className="inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-medium text-black shadow-[0_10px_40px_-10px_var(--brand-60)] focus:outline-none focus:ring-2 focus:ring-white/60" style={{
             background: "linear-gradient(135deg, rgba(240,171,252,.9), rgba(253,164,175,.95), var(--brand))"
           }}>
-            Join waitlist
+            {t("contact.cta")}
           </Link>
         </div>
       </div>

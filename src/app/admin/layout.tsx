@@ -10,29 +10,42 @@ import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Users as UsersIcon, User, ShieldCheck, Send, Wallet as WalletIcon } from "lucide-react";
+import { LayoutDashboard, Users as UsersIcon, User, ShieldCheck, Send, Wallet as WalletIcon, Banknote } from "lucide-react";
 import { ToastProvider, Toaster, useToast } from "@/components/ui/toast";
+import { useI18n } from "@/lib/i18n";
 
 const navItems = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard, tone: { bg: "bg-blue-500/15", text: "text-blue-600 dark:text-blue-300" } },
-  { href: "/admin/agents", label: "Agents", icon: UsersIcon, tone: { bg: "bg-emerald-500/15", text: "text-emerald-600 dark:text-emerald-300" } },
-  { href: "/admin/customer", label: "Customer", icon: User, tone: { bg: "bg-violet-500/15", text: "text-violet-600 dark:text-violet-300" } },
-  { href: "/admin/verify", label: "Verify", icon: ShieldCheck, tone: { bg: "bg-amber-500/15", text: "text-amber-700 dark:text-amber-300" } },
-  { href: "/admin/transfer", label: "Transfer", icon: Send, tone: { bg: "bg-sky-500/15", text: "text-sky-600 dark:text-sky-300" } },
-  { href: "/admin/wallet", label: "Wallet", icon: WalletIcon, tone: { bg: "bg-rose-500/15", text: "text-rose-600 dark:text-rose-300" } },
+  { href: "/admin", k: "dash.admin.nav.dashboard", icon: LayoutDashboard, tone: { bg: "bg-blue-500/15", text: "text-blue-600 dark:text-blue-300" } },
+  { href: "/admin/agents", k: "dash.admin.nav.agents", icon: UsersIcon, tone: { bg: "bg-emerald-500/15", text: "text-emerald-600 dark:text-emerald-300" } },
+  { href: "/admin/customer", k: "dash.admin.nav.customer", icon: User, tone: { bg: "bg-violet-500/15", text: "text-violet-600 dark:text-violet-300" } },
+  { href: "/admin/verify", k: "dash.admin.nav.verify", icon: ShieldCheck, tone: { bg: "bg-amber-500/15", text: "text-amber-700 dark:text-amber-300" } },
+  { href: "/admin/transfer", k: "dash.admin.nav.transfer", icon: Send, tone: { bg: "bg-sky-500/15", text: "text-sky-600 dark:text-sky-300" } },
+  { href: "/admin/wallet", k: "dash.admin.nav.wallet", icon: WalletIcon, tone: { bg: "bg-rose-500/15", text: "text-rose-600 dark:text-rose-300" } },
+  { href: "/admin/payouts", k: "dash.admin.nav.payouts", icon: Banknote, tone: { bg: "bg-teal-500/15", text: "text-teal-600 dark:text-teal-300" } },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const { t } = useI18n();
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
-      if (!user) {
+      const email = user?.email ?? "";
+      const ADMIN = "admin@fsalbd.com";
+      const AGENT = "agent@fsalbd.com";
+      const USER = "user@fsalbd.com";
+      if (!email) {
         router.replace("/login");
-      } else {
+      } else if (email === ADMIN) {
         setLoading(false);
+      } else if (email === AGENT) {
+        router.replace("/agentDashboard");
+      } else if (email === USER) {
+        router.replace("/userDashboard");
+      } else {
+        router.replace("/login");
       }
     });
     return () => unsub();
@@ -45,7 +58,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M21 12a9 9 0 1 1-6.219-8.56" />
           </svg>
-          Loading admin...
+          {t("dash.common.loading_admin")}
         </div>
       </div>
     );
@@ -62,9 +75,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/admin" className="font-semibold tracking-tight">
             <span className="logo-flash">Flash</span>
             <span style={{ color: "var(--brand)" }}>Point</span>
-            <Badge className="ml-2" variant="secondary">Admin</Badge>
+            <Badge className="ml-2" variant="secondary">{t("dash.common.admin_badge")}</Badge>
           </Link>
-          <Link href="/" className="text-sm hover:opacity-80">Back to site</Link>
+          <Link href="/" className="text-sm hover:opacity-80">{t("dash.common.back_to_site")}</Link>
         </div>
         <nav className="mx-auto max-w-7xl px-2 pb-2 overflow-x-auto">
           <ul className="flex gap-2">
@@ -86,7 +99,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       <span className={`grid place-items-center rounded-md p-1 ${item.tone.bg}`}>
                         <Icon className="h-3.5 w-3.5" />
                       </span>
-                      {item.label}
+                      {t(item.k)}
                     </span>
                   </Link>
                 </li>
@@ -122,7 +135,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </g>
               </svg>
             </div>
-            <div className="font-semibold leading-none">Admin</div>
+            <div className="font-semibold leading-none">{t("dash.common.admin_badge")}</div>
           </Link>
           <Separator className="my-3" />
           <nav className="flex-1 overflow-auto">
@@ -143,7 +156,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       <span className={`grid place-items-center rounded-md p-1.5 ${item.tone.bg} ${item.tone.text}`}>
                         <Icon className="h-4 w-4" />
                       </span>
-                      <span className={active ? "font-semibold" : undefined}>{item.label}</span>
+                      <span className={active ? "font-semibold" : undefined}>{t(item.k)}</span>
                     </Link>
                   </li>
                 );
@@ -170,20 +183,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
 function LogoutButton({ onDone }: { onDone: () => void }) {
   const { toast } = useToast();
+  const { t } = useI18n();
   return (
     <Button
       className="w-full bg-[var(--brand)] text-black hover:brightness-110"
       onClick={async () => {
         try {
           await signOut(auth);
-          toast({ title: "Signed out", variant: "success" });
+          toast({ title: t("dash.common.signed_out"), variant: "success" });
           onDone();
         } catch (e) {
-          toast({ title: "Failed to sign out", variant: "destructive" });
+          toast({ title: t("dash.common.sign_out_failed"), variant: "destructive" });
         }
       }}
     >
-      Log out
+      {t("dash.common.logout")}
     </Button>
   );
 }

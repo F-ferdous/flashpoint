@@ -1,4 +1,8 @@
+"use client";
+import { useI18n } from "@/lib/i18n";
+
 export default function Telemedicine() {
+  const { t } = useI18n();
   return (
     <section id="telemedicine" className="relative overflow-hidden bg-[var(--background)]">
       {/* subtle ambient brand glow */}
@@ -10,14 +14,12 @@ export default function Telemedicine() {
         <div className="flex flex-col gap-3 mb-8 sm:mb-10">
           <p className="inline-flex w-fit items-center gap-2 text-xs font-medium px-2.5 py-1.5 rounded-full bg-[var(--brand-15)] border border-[var(--brand-25)] text-foreground/90">
             <span className="size-2 rounded-full bg-[var(--brand)]" />
-            Virtual Care
+            {t("telemedicine.badge")}
           </p>
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Telemedicine <span style={{ color: "var(--brand)" }}>Built‑In</span>
+            {t("telemedicine.title").split(" ")[0]} <span style={{ color: "var(--brand)" }}>{t("telemedicine.title").split(" ").slice(1).join(" ")}</span>
           </h2>
-          <p className="text-sm text-foreground/80 max-w-2xl">
-            Secure virtual care with consultations, prescriptions, and records in one place.
-          </p>
+          <p className="text-sm text-foreground/80 max-w-2xl">{t("telemedicine.subtitle")}</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 animate-fade-in">
@@ -33,10 +35,8 @@ export default function Telemedicine() {
                 </svg>
               </span>
               <div className="space-y-1">
-                <h3 className="text-base font-semibold">On‑Demand Consults</h3>
-                <p className="text-sm/6 text-foreground/70">
-                  Book video or chat visits with licensed providers. Triage and wait‑time indicators.
-                </p>
+                <h3 className="text-base font-semibold">{t("telemedicine.c1_title")}</h3>
+                <p className="text-sm/6 text-foreground/70">{t("telemedicine.c1_desc")}</p>
               </div>
             </div>
           </div>
@@ -53,10 +53,8 @@ export default function Telemedicine() {
                 </svg>
               </span>
               <div className="space-y-1">
-                <h3 className="text-base font-semibold">E‑Prescriptions</h3>
-                <p className="text-sm/6 text-foreground/70">
-                  Provider‑issued prescriptions with pharmacy integrations and refill reminders.
-                </p>
+                <h3 className="text-base font-semibold">{t("telemedicine.c2_title")}</h3>
+                <p className="text-sm/6 text-foreground/70">{t("telemedicine.c2_desc")}</p>
               </div>
             </div>
           </div>
@@ -73,10 +71,8 @@ export default function Telemedicine() {
                 </svg>
               </span>
               <div className="space-y-1">
-                <h3 className="text-base font-semibold">Reports & History</h3>
-                <p className="text-sm/6 text-foreground/70">
-                  Store labs, visit notes, and invoices. Share securely with role‑based access.
-                </p>
+                <h3 className="text-base font-semibold">{t("telemedicine.c3_title")}</h3>
+                <p className="text-sm/6 text-foreground/70">{t("telemedicine.c3_desc")}</p>
               </div>
             </div>
           </div>

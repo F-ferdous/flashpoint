@@ -54,27 +54,40 @@ export default function AgentsPage() {
   const [view, setView] = useState<Agent | null>(null);
   const { toast } = useToast();
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
-    // Create a new agent entry locally (Pending by default)
     const name = String(form.get("name") || "");
+    const email = String(form.get("email") || "");
+    const username = String(form.get("username") || "");
+    const password = String(form.get("password") || "");
     const age = Number(form.get("age") || 0);
     const nid = String(form.get("nid") || "");
     const trade = String(form.get("trade") || "");
     const address = String(form.get("address") || "");
     const district = String(form.get("district") || "");
     const bank = String(form.get("bank") || "");
-    const id = String(Date.now());
-    const email = `${name.toLowerCase().replace(/\s+/g, ".")}@flashpoint.io`;
 
-    setAgents((prev) => [
-      { id, name, email, status: "Pending", age, nid, trade, address, district, bank },
-      ...prev,
-    ]);
+    try {
+      const res = await fetch("/api/admin/create-agent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, username, password, age, nid, trade, address, district, bank }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to create agent");
 
-    setOpen(false);
-    toast({ title: "Agent saved", variant: "success" });
+      const id = data.uid as string;
+      setAgents((prev) => [
+        { id, name, email, status: "Pending", age, nid, trade, address, district, bank },
+        ...prev,
+      ]);
+      setOpen(false);
+      toast({ title: "Agent created", variant: "success" });
+      (e.currentTarget as HTMLFormElement).reset();
+    } catch (err: any) {
+      toast({ title: err?.message || "Failed to create agent", variant: "destructive" });
+    }
   }
 
   return (
@@ -128,13 +141,13 @@ export default function AgentsPage() {
       {/* Add Agent Modal */}
       {open && (
         <div
-          className="fixed inset-0 z-[100] grid place-items-center p-4"
+          className="fixed inset-0 z-[100] grid place-items-center p-4 overflow-y-auto"
           role="dialog"
           aria-modal="true"
           aria-labelledby="add-agent-title"
         >
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <div className="relative w-full max-w-3xl rounded-2xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)] shadow-xl">
+          <div className="relative w-full max-w-3xl rounded-2xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)] shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between p-4 md:p-5">
               <div>
                 <h3 id="add-agent-title" className="text-xl font-bold tracking-tight">Add Agent</h3>
@@ -154,6 +167,10 @@ export default function AgentsPage() {
                 <div className="grid gap-1.5">
                   <Label htmlFor="name">Name</Label>
                   <input id="name" name="name" required placeholder="Full name" className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="email">Email</Label>
+                  <input id="email" name="email" type="email" required placeholder="email@example.com" className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
                 </div>
                 <div className="grid gap-1.5">
                   <Label htmlFor="age">Age</Label>
@@ -181,6 +198,10 @@ export default function AgentsPage() {
                   </select>
                 </div>
                 <div className="grid gap-1.5">
+                  <Label htmlFor="username">Username</Label>
+                  <input id="username" name="username" required placeholder="Choose a username" className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
+                </div>
+                <div className="grid gap-1.5">
                   <Label htmlFor="nidPhoto">Photo of NID</Label>
                   <input id="nidPhoto" name="nidPhoto" type="file" accept="image/*" required className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 file:mr-3 file:rounded-md file:border-0 file:bg-[var(--brand)] file:text-black file:px-3 file:py-2.5 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
                 </div>
@@ -191,6 +212,10 @@ export default function AgentsPage() {
                 <div className="md:col-span-2 grid gap-1.5">
                   <Label htmlFor="bank">Bank Account Details</Label>
                   <textarea id="bank" name="bank" rows={3} required placeholder="Account name, number, bank, branch" className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
+                </div>
+                <div className="grid gap-1.5 md:col-span-1">
+                  <Label htmlFor="password">Password</Label>
+                  <input id="password" name="password" type="password" required minLength={6} placeholder="Temporary password" className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
                 </div>
               </div>
               <div className="mt-5 flex items-center justify-end gap-2">

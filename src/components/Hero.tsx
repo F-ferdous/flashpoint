@@ -1,7 +1,9 @@
 "use client";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n";
 
 export default function Hero() {
+  const { t } = useI18n();
   return (
     <section className="relative overflow-hidden bg-[var(--background)]">
       <div className="absolute inset-0 pointer-events-none opacity-30 [mask-image:radial-gradient(ellipse_at_center,black,transparent_70%)]">
@@ -13,31 +15,28 @@ export default function Hero() {
         <div className="mx-auto max-w-3xl text-center space-y-6 animate-fade-in">
           <p className="inline-flex items-center gap-2 text-xs font-medium px-2.5 py-1.5 rounded-full chip-brand backdrop-blur">
             <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-            Join the Future of Smart Services
+            {t("hero.badge")}
           </p>
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
-            Unlock Rewards, Grow Networks & Access Services{" "}
-            <span style={{ color: "var(--brand)" }}>– All in One Platform</span>{" "}
-            Effortlessly!
+            {t("hero.h1_p1")}
+            <span style={{ color: "var(--brand)" }}>{t("hero.h1_highlight")}</span>
+            {t("hero.h1_p2")}
           </h1>
           <p className="text-sm sm:text-sm text-foreground/70 mx-auto max-w-2xl">
-            A next-gen gamification & service ecosystem where Admins, Agents,
-            Sellers, and Customers connect through points, referrals, and
-            earnings. Experience interactive dashboards, seamless transactions,
-            and integrated telemedicine — anytime, anywhere.
+            {t("hero.desc")}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/signup"
               className="inline-flex items-center justify-center btn-pill px-6 py-3 text-sm font-semibold shadow-sm transition active:translate-y-[1px] btn-brand"
             >
-              Get Started
+              {t("hero.cta_get_started")}
             </Link>
             <Link
               href="#pricing"
               className="inline-flex items-center justify-center btn-pill px-6 py-3 text-sm font-semibold transition btn-brand-outline"
             >
-              View Pricing
+              {t("hero.cta_view_pricing")}
             </Link>
           </div>
         </div>
@@ -75,18 +74,10 @@ export default function Hero() {
 
               {/* bottom chips */}
               <div className="absolute inset-x-0 bottom-0 p-4 flex flex-wrap justify-center gap-2 text-xs">
-                <span className="px-2 py-1 rounded-full bg-[var(--brand-15)] text-foreground/85 border border-[var(--brand-25)]">
-                  Live Points
-                </span>
-                <span className="px-2 py-1 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-                  Daily Bonus
-                </span>
-                <span className="px-2 py-1 rounded-full bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300 border border-fuchsia-500/30">
-                  Referrals
-                </span>
-                <span className="px-2 py-1 rounded-full bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30">
-                  Telemedicine
-                </span>
+                <span className="px-2 py-1 rounded-full bg-[var(--brand-15)] text-foreground/85 border border-[var(--brand-25)]">{t("hero.chip_live_points")}</span>
+                <span className="px-2 py-1 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">{t("hero.chip_daily_bonus")}</span>
+                <span className="px-2 py-1 rounded-full bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300 border border-fuchsia-500/30">{t("hero.chip_referrals")}</span>
+                <span className="px-2 py-1 rounded-full bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30">{t("hero.chip_telemedicine")}</span>
               </div>
             </div>
           </div>

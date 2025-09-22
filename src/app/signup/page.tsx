@@ -1,21 +1,61 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { db } from "@/lib/firebase";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { useI18n } from "@/lib/i18n";
 
 export default function SignupPage() {
+  const { t } = useI18n();
+  return (
+    <Suspense fallback={<div className="min-h-[calc(100dvh-140px)] grid place-items-center text-sm text-foreground/70">{t("signup.loading")}</div>}>
+      <SignupForm />
+    </Suspense>
+  );
+}
+
+function SignupForm() {
+  const { t } = useI18n();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const search = useSearchParams();
+  const ref = search.get("ref") || "";
+  const hasRef = useMemo(() => Boolean(ref && ref.trim().length > 0), [ref]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSubmitting(true);
-    const form = new FormData(e.currentTarget);
-    // Placeholder: send to API or Firebase later
-    await new Promise((r) => setTimeout(r, 900));
-    console.log(Object.fromEntries(form.entries()));
-    setSubmitting(false);
-    setSubmitted(true);
+    if (!hasRef) return;
+    try {
+      const form = new FormData(e.currentTarget);
+      const entries = Object.fromEntries(form.entries());
+      // Remove file inputs from JSON payload
+      if (entries["nidFile"] instanceof File) {
+        delete (entries as any)["nidFile"];
+      }
+      const payload: any = entries;
+      // Build pending user doc
+      const docData = {
+        referrerUid: String(ref),
+        fullName: String(payload.fullName || ""),
+        email: String(payload.email || "").toLowerCase(),
+        phone: payload.phone ? String(payload.phone) : null,
+        nidNumber: payload.nidNumber ? String(payload.nidNumber) : null,
+        address: payload.address ? String(payload.address) : null,
+        district: payload.district ? String(payload.district) : null,
+        status: "Pending" as const,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+      await addDoc(collection(db, "pendingUsers"), docData);
+      setSubmitted(true);
+    } catch (err) {
+      // Fail silently in UI; could add a toast if desired
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -30,69 +70,91 @@ export default function SignupPage() {
           <div className="mb-6 sm:mb-8 text-center">
             <p className="inline-flex w-fit items-center gap-2 text-xs font-medium px-2.5 py-1.5 rounded-full bg-[var(--brand-15)] border border-[var(--brand-25)] text-foreground/90">
               <span className="size-2 rounded-full bg-[var(--brand)]" />
-              Create your account
+              {t("signup.badge")}
             </p>
             <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold tracking-tight">
-              Sign up for <span className="logo-flash">Flash</span>
+              {t("signup.heading")}<span className="logo-flash">Flash</span>
               <span style={{ color: "var(--brand)" }}>Point</span>
             </h1>
-            <p className="mt-2 text-sm text-foreground/70">Join to earn points, redeem, and access telemedicine securely.</p>
+            <p className="mt-2 text-sm text-foreground/70">{t("signup.sub")}</p>
           </div>
 
           <form onSubmit={onSubmit} className="space-y-5 rounded-2xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)] p-5 sm:p-6 glow-brand">
+            {hasRef && (
+              <input type="hidden" name="ref" value={ref} />
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {!hasRef && (
+                <div className="sm:col-span-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
+                  {t("signup.need_referral")}
+                </div>
+              )}
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="fullName" className="text-sm text-foreground/80">Full Name</label>
-                <input id="fullName" name="fullName" required placeholder="Jane Doe" className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
+                <label htmlFor="fullName" className="text-sm text-foreground/80">{t("signup.full_name")}</label>
+                <input id="fullName" name="fullName" required placeholder={t("signup.full_name_ph")} className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="email" className="text-sm text-foreground/80">Email</label>
-                <input id="email" name="email" type="email" required placeholder="jane@example.com" className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
+                <label htmlFor="email" className="text-sm text-foreground/80">{t("signup.email")}</label>
+                <input id="email" name="email" type="email" required placeholder={t("signup.email_ph")} className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="phone" className="text-sm text-foreground/80">Phone Number</label>
-                <input id="phone" name="phone" type="tel" required placeholder="+8801XXXXXXXXX" className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
+                <label htmlFor="phone" className="text-sm text-foreground/80">{t("signup.phone")}</label>
+                <input id="phone" name="phone" type="tel" required placeholder={t("signup.phone_ph")} className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="nidNumber" className="text-sm text-foreground/80">NID Number</label>
-                <input id="nidNumber" name="nidNumber" required placeholder="XXXXXXXXXX" className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
+                <label htmlFor="district" className="text-sm text-foreground/80">{t("signup.district")}</label>
+                <select id="district" name="district" required className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]">
+                  <option value="" disabled>{t("signup.district_select")}</option>
+                  <option>{t("signup.districts.dhaka")}</option>
+                  <option>{t("signup.districts.chattogram")}</option>
+                  <option>{t("signup.districts.rajshahi")}</option>
+                  <option>{t("signup.districts.khulna")}</option>
+                  <option>{t("signup.districts.barishal")}</option>
+                  <option>{t("signup.districts.sylhet")}</option>
+                  <option>{t("signup.districts.rangpur")}</option>
+                  <option>{t("signup.districts.mymensingh")}</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="nidNumber" className="text-sm text-foreground/80">{t("signup.nid")}</label>
+                <input id="nidNumber" name="nidNumber" required placeholder={t("signup.nid_ph")} className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
               </div>
               <div className="sm:col-span-2 flex flex-col gap-1.5">
-                <label htmlFor="address" className="text-sm text-foreground/80">Address</label>
-                <textarea id="address" name="address" required placeholder="House, Road, City, ZIP" rows={3} className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
+                <label htmlFor="address" className="text-sm text-foreground/80">{t("signup.address")}</label>
+                <textarea id="address" name="address" required placeholder={t("signup.address_ph")} rows={3} className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
               </div>
               <div className="sm:col-span-2 grid gap-2">
-                <label htmlFor="nidFile" className="text-sm text-foreground/80">Upload NID (optional)</label>
+                <label htmlFor="nidFile" className="text-sm text-foreground/80">{t("signup.upload_nid")}</label>
                 <input id="nidFile" name="nidFile" type="file" accept="image/*,application/pdf" className="block w-full text-sm text-foreground/80 file:mr-3 file:rounded-md file:border-0 file:bg-[var(--brand)] file:px-3 file:py-2 file:text-black file:font-medium file:hover:brightness-110" />
-                <p className="text-xs text-foreground/60">Supported: JPG, PNG, or PDF.</p>
+                <p className="text-xs text-foreground/60">{t("signup.upload_supported")}</p>
               </div>
             </div>
 
             <div className="flex items-center justify-between pt-2">
-              <p className="text-xs text-foreground/60">By continuing you agree to our <Link href="#" className="underline hover:text-[var(--brand)]">Terms</Link> and <Link href="#" className="underline hover:text-[var(--brand)]">Privacy Policy</Link>.</p>
-              <button disabled={submitting} type="submit" className="inline-flex items-center gap-2 rounded-lg bg-[var(--brand)] text-black px-4 py-2.5 text-sm font-semibold shadow-sm hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--brand)] focus:ring-offset-[var(--background-solid)] disabled:opacity-70">
+              <p className="text-xs text-foreground/60">{t("signup.terms")}<Link href="#" className="underline hover:text-[var(--brand)]">{t("signup.terms_terms")}</Link> {t("common.and", { /* fallback if needed */ }) || "and"} <Link href="#" className="underline hover:text-[var(--brand)]">{t("signup.terms_privacy")}</Link>.</p>
+              <button disabled={submitting || !hasRef} type="submit" className="inline-flex items-center gap-2 rounded-lg bg-[var(--brand)] text-black px-4 py-2.5 text-sm font-semibold shadow-sm hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--brand)] focus:ring-offset-[var(--background-solid)] disabled:opacity-70">
                 {submitting ? (
                   <>
                     <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                       <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                     </svg>
-                    Creating...
+                    {t("signup.creating")}
                   </>
                 ) : (
-                  <>Create account</>
+                  <>{t("signup.create_account")}</>
                 )}
               </button>
             </div>
 
             {submitted && (
               <div className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-700 dark:text-emerald-200">
-                Thanks! Your sign up info has been captured locally. We’ll connect this to Firebase next.
+                {t("signup.thanks")}
               </div>
             )}
           </form>
 
           <p className="mt-4 text-center text-sm text-foreground/70">
-            Already have an account? <Link href="/login" className="underline hover:text-[var(--brand)]">Log in</Link>
+            {t("signup.already")} <Link href="/login" className="underline hover:text-[var(--brand)]">{t("signup.login")}</Link>
           </p>
         </div>
       </div>

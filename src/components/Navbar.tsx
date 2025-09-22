@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
+import { useI18n } from "@/lib/i18n";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -12,6 +13,7 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
   const router = useRouter();
+  const { t, lang, setLang } = useI18n();
 
   useEffect(() => {
     // Initialize theme based on the current <html> classes set by the early script
@@ -51,6 +53,10 @@ export default function Navbar() {
     }
   };
 
+  const toggleLanguage = () => {
+    setLang(lang === "bn" ? "en" : "bn");
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur bg-[var(--background)]">
       <nav
@@ -61,7 +67,7 @@ export default function Navbar() {
           <div className="flex items-center gap-2">
             <Link
               href="/"
-              aria-label="Flash Point Home"
+              aria-label={t("navbar.aria_home")}
               className="flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 rounded"
             >
               <svg
@@ -105,31 +111,31 @@ export default function Navbar() {
               href="#third-party-earning"
               className="text-md hover:opacity-80 hover:text-[var(--brand)] transition-opacity"
             >
-              Earning
+              {t("common.earning")}
             </Link>
             <Link
               href="#points-and-conversion"
               className="text-md hover:opacity-80 hover:text-[var(--brand)] transition-opacity"
             >
-              Points
+              {t("common.points")}
             </Link>
             <Link
               href="#telemedicine"
               className="text-md hover:opacity-80 hover:text-[var(--brand)] transition-opacity"
             >
-              Telemedicine
+              {t("common.telemedicine")}
             </Link>
             <Link
               href="#pricing"
               className="text-md hover:opacity-80 hover:text-[var(--brand)] transition-opacity"
             >
-              Pricing
+              {t("common.pricing")}
             </Link>
             <Link
               href="#contact"
               className="text-md hover:opacity-80 hover:text-[var(--brand)] transition-opacity"
             >
-              Contact
+              {t("common.contact")}
             </Link>
             {email ? (
               <div className="flex items-center gap-3">
@@ -143,8 +149,17 @@ export default function Navbar() {
                   }}
                   className="text-md btn-pill px-4 py-2 btn-brand-outline hover:opacity-90"
                 >
-                  Logout
+                  {t("common.logout")}
                 </button>
+            {/* Language toggle (mobile) */}
+            <button
+              onClick={toggleLanguage}
+              aria-label={t("common.language")}
+              className="inline-flex items-center justify-center rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-offset-2 hover:opacity-90"
+              title={t("common.language")}
+            >
+              <span className="text-xs font-medium">{lang === "bn" ? t("common.bn") : t("common.en")}</span>
+            </button>
               </div>
             ) : (
               <>
@@ -152,13 +167,13 @@ export default function Navbar() {
                   href="/login"
                   className="text-md btn-pill px-4 py-2 btn-brand-outline hover:opacity-90"
                 >
-                  Log In
+                  {t("common.login")}
                 </Link>
                 <Link
                   href="/signup"
                   className="text-md btn-pill px-4 py-2 font-medium shadow-sm transition hover:opacity-90 btn-brand"
                 >
-                  Get Started
+                  {t("common.get_started")}
                 </Link>
               </>
             )}
@@ -167,7 +182,7 @@ export default function Navbar() {
               onClick={toggleTheme}
               aria-label="Toggle dark mode"
               className="inline-flex items-center justify-center rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-offset-2 hover:opacity-90"
-              title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              title={isDark ? t("common.switch_to_light") : t("common.switch_to_dark")}
             >
               {!mounted ? (
                 <span className="block h-5 w-5" aria-hidden />
@@ -184,6 +199,15 @@ export default function Navbar() {
                 </svg>
               )}
             </button>
+            {/* Language toggle (desktop) */}
+            <button
+              onClick={toggleLanguage}
+              aria-label={t("common.language")}
+              className="inline-flex items-center justify-center rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-offset-2 hover:opacity-90"
+              title={t("common.language")}
+            >
+              <span className="text-sm font-medium">{lang === "bn" ? t("common.bn") : t("common.en")}</span>
+            </button>
           </div>
 
           <div className="flex items-center gap-1 md:hidden">
@@ -192,7 +216,7 @@ export default function Navbar() {
               onClick={toggleTheme}
               aria-label="Toggle dark mode"
               className="inline-flex items-center justify-center rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-offset-2 hover:opacity-90"
-              title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              title={isDark ? t("common.switch_to_light") : t("common.switch_to_dark")}
             >
               {!mounted ? (
                 <span className="block h-6 w-6" aria-hidden />
@@ -214,7 +238,7 @@ export default function Navbar() {
               aria-expanded={open}
               onClick={() => setOpen((v) => !v)}
             >
-              <span className="sr-only">Open main menu</span>
+              <span className="sr-only">{t("navbar.open_menu")}</span>
               <svg
                 className="h-6 w-6"
                 viewBox="0 0 24 24"
@@ -245,31 +269,31 @@ export default function Navbar() {
               href="#third-party-earning"
               className="px-2 py-2 rounded hover:bg-black/5 dark:hover:bg-white/10"
             >
-              Earning
+              {t("common.earning")}
             </Link>
             <Link
               href="#points-and-conversion"
               className="px-2 py-2 rounded hover:bg-black/5 dark:hover:bg-white/10"
             >
-              Points
+              {t("common.points")}
             </Link>
             <Link
               href="#telemedicine"
               className="px-2 py-2 rounded hover:bg-black/5 dark:hover:bg-white/10"
             >
-              Telemedicine
+              {t("common.telemedicine")}
             </Link>
             <Link
               href="#pricing"
               className="px-2 py-2 rounded hover:bg-black/5 dark:hover:bg-white/10"
             >
-              Pricing
+              {t("common.pricing")}
             </Link>
             <Link
               href="#contact"
               className="px-2 py-2 rounded hover:bg-black/5 dark:hover:bg-white/10"
             >
-              Contact
+              {t("common.contact")}
             </Link>
             {email ? (
               <button
@@ -281,7 +305,7 @@ export default function Navbar() {
                 }}
                 className="px-2 py-2 btn-pill text-center btn-brand-outline"
               >
-                Logout
+                {t("common.logout")}
               </button>
             ) : (
               <>
@@ -289,13 +313,13 @@ export default function Navbar() {
                   href="/login"
                   className="px-2 py-2 btn-pill text-center btn-brand-outline"
                 >
-                  Log In
+                  {t("common.login")}
                 </Link>
                 <Link
                   href="/signup"
                   className="px-2 py-2 btn-pill text-center font-medium btn-brand"
                 >
-                  Get Started
+                  {t("common.get_started")}
                 </Link>
               </>
             )}

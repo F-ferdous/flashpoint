@@ -1,6 +1,9 @@
+"use client";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n";
 
 export default function GroceryShopping() {
+  const { t } = useI18n();
   return (
     <section
       id="grocery-shopping"
@@ -47,11 +50,10 @@ export default function GroceryShopping() {
 
         {/* Heading */}
         <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-          Grocery & Shopping
+          {t("grocery.title")}
         </h2>
         <p className="mt-2 text-sm text-foreground/70 max-w-xl mx-auto">
-          Convenient grocery orders and in-app shopping integrations to earn and
-          redeem points.
+          {t("grocery.desc")}
         </p>
 
         {/* Coming soon banner */}
@@ -64,7 +66,7 @@ export default function GroceryShopping() {
                 "linear-gradient(135deg, rgba(240,171,252,.9), rgba(253,164,175,.95), var(--brand))",
             }}
           >
-            Coming Soon
+            {t("grocery.coming_soon")}
           </Link>
         </div>
 

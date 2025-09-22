@@ -8,10 +8,12 @@ import { auth } from "@/lib/firebase";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
+import { useI18n } from "@/lib/i18n";
 
 export default function CustomerLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const { t } = useI18n();
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -31,7 +33,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
           <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M21 12a9 9 0 1 1-6.219-8.56" />
           </svg>
-          Loading dashboard...
+          {t("dash.common.loading_dashboard")}
         </div>
       </div>
     );
@@ -45,9 +47,9 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
           <Link href="/customerDashboard" className="font-semibold tracking-tight">
             <span className="logo-flash">Flash</span>
             <span style={{ color: "var(--brand)" }}>Point</span>
-            <Badge className="ml-2" variant="secondary">Customer</Badge>
+            <Badge className="ml-2" variant="secondary">{t("dash.common.customer_badge")}</Badge>
           </Link>
-          <Link href="/" className="text-sm hover:opacity-80">Back to site</Link>
+          <Link href="/" className="text-sm hover:opacity-80">{t("dash.common.back_to_site")}</Link>
         </div>
       </header>
       <main className="mx-auto max-w-7xl px-4 md:px-6 py-6">

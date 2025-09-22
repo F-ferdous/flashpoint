@@ -11,7 +11,8 @@ export default function RootChrome({ children }: { children: React.ReactNode }) 
   const isSection =
     pathname?.startsWith("/admin") ||
     pathname?.startsWith("/agentDashboard") ||
-    pathname?.startsWith("/customerDashboard");
+    pathname?.startsWith("/customerDashboard") ||
+    pathname?.startsWith("/userDashboard");
 
   if (isSection) {
     // Admin section manages its own chrome in src/app/admin/layout.tsx

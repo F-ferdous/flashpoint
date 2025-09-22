@@ -1,0 +1,20 @@
+{
+  "name": "flashpoint-functions",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "deploy": "npm run build && firebase deploy --only functions"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "firebase-admin": "^12.5.0",
+    "firebase-functions": "^5.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  },
+  "private": true
+}

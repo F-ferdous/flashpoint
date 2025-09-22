@@ -4,12 +4,15 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { useI18n } from "@/lib/i18n";
 
 export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { t } = useI18n();
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -20,43 +23,57 @@ export default function LoginPage() {
     const password = String(form.get("password") || "");
 
     if (!email || !password) {
-      setError("Please enter your email and password.");
+      setError(t("login.err_missing"));
       setSubmitting(false);
       return;
     }
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // Redirect after successful login based on email
+      // Redirect after successful login based on role/email
       const u = auth.currentUser;
       const em = u?.email?.toLowerCase();
+      // Admin/Agent by explicit email
+      if (em === "admin@fsalbd.com") {
+        router.push("/admin");
+        return;
+      }
       if (em === "agent@fsalbd.com") {
         router.push("/agentDashboard");
-      } else if (em === "admin@fsalbd.com") {
-        router.push("/admin");
-      } else if (em === "user@dashboard.com") {
-        router.push("/customerDashboard");
-      } else {
-        router.push("/");
+        return;
       }
+      // Otherwise, check Firestore role for this uid
+      const uid = u?.uid;
+      if (uid) {
+        try {
+          const snap = await getDoc(doc(db, "users", uid));
+          const role = (snap.exists() ? (snap.data() as any)?.role : undefined) as string | undefined;
+          if (role === "user") {
+            router.push("/userDashboard");
+            return;
+          }
+        } catch {}
+      }
+      // Fallback
+      router.push("/");
     } catch (err: any) {
-      let message = "Unable to sign in. Please try again.";
+      let message = t("login.err_default");
       const code = err?.code as string | undefined;
       switch (code) {
         case "auth/invalid-credential":
         case "auth/invalid-login-credentials":
         case "auth/wrong-password":
         case "auth/user-not-found":
-          message = "Invalid email or password.";
+          message = t("login.err_invalid");
           break;
         case "auth/too-many-requests":
-          message = "Too many attempts. Please try again later.";
+          message = t("login.err_rate_limited");
           break;
         case "auth/network-request-failed":
-          message = "Network error. Check your connection and try again.";
+          message = t("login.err_network");
           break;
         case "auth/invalid-email":
-          message = "Please enter a valid email address.";
+          message = t("login.err_invalid_email");
           break;
       }
       setError(message);
@@ -77,26 +94,26 @@ export default function LoginPage() {
           <div className="mb-6 sm:mb-8 text-center">
             <p className="inline-flex w-fit items-center gap-2 text-xs font-medium px-2.5 py-1.5 rounded-full bg-[var(--brand-15)] border border-[var(--brand-25)] text-foreground/90">
               <span className="size-2 rounded-full bg-[var(--brand)]" />
-              Welcome back
+              {t("login.badge")}
             </p>
             <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold tracking-tight">
-              Log in to <span className="logo-flash">Flash</span>
+              {t("login.heading")}<span className="logo-flash">Flash</span>
               <span style={{ color: "var(--brand)" }}>Point</span>
             </h1>
-            <p className="mt-2 text-sm text-foreground/70">Access your dashboard to manage rewards and services.</p>
+            <p className="mt-2 text-sm text-foreground/70">{t("login.sub")}</p>
           </div>
 
           <form onSubmit={onSubmit} className="space-y-5 rounded-2xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)] p-5 sm:p-6 glow-brand">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="email" className="text-sm text-foreground/80">Email</label>
-              <input id="email" name="email" type="email" required placeholder="jane@example.com" className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
+              <label htmlFor="email" className="text-sm text-foreground/80">{t("login.email_label")}</label>
+              <input id="email" name="email" type="email" required placeholder={t("login.email_placeholder")} className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
             </div>
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <label htmlFor="password" className="text-sm text-foreground/80">Password</label>
-                <Link href="#" className="text-xs text-foreground/70 hover:text-[var(--brand)] underline">Forgot?</Link>
+                <label htmlFor="password" className="text-sm text-foreground/80">{t("login.pass_label")}</label>
+                <Link href="#" className="text-xs text-foreground/70 hover:text-[var(--brand)] underline">{t("login.forgot")}</Link>
               </div>
-              <input id="password" name="password" type="password" required placeholder="••••••••" className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
+              <input id="password" name="password" type="password" required placeholder={t("login.pass_placeholder")} className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
             </div>
 
             {error && (
@@ -111,15 +128,15 @@ export default function LoginPage() {
                   <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                   </svg>
-                  Signing in...
+                  {t("login.submitting")}
                 </>
               ) : (
-                <>Sign in</>
+                <>{t("login.submit")}</>
               )}
             </button>
 
             <p className="text-center text-sm text-foreground/70">
-              New here? <Link href="/signup" className="underline hover:text-[var(--brand)]">Create an account</Link>
+              {t("login.new_here")} <Link href="/signup" className="underline hover:text-[var(--brand)]">{t("login.create_account")}</Link>
             </p>
           </form>
         </div>

@@ -1,6 +1,9 @@
+"use client";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n";
 
 export default function Footer() {
+  const { t } = useI18n();
   return (
     <footer className="mt-16 relative overflow-hidden bg-[var(--background)]">
       {/* ambient brand glow */}
@@ -42,11 +45,10 @@ export default function Footer() {
                 </span>
               </div>
               <p className="text-sm text-foreground/70 max-w-xs">
-                Flash Point unifies rewards, payments, and care. Earn through offers, redeem with
-                confidence, and access telemedicine from a single, secure platform.
+                {t("footer.blurb1")}
               </p>
               <p className="text-sm text-foreground/60 max-w-xs">
-                Built for modern teams and communities — privacy‑first, scalable, and delightful to use.
+                {t("footer.blurb2")}
               </p>
               <div className="flex items-center gap-3 pt-1">
                 <Link aria-label="Twitter" href="#" className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10">
@@ -65,36 +67,36 @@ export default function Footer() {
             {/* Columns */}
             <nav aria-label="Footer Navigation" className="md:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-8">
               <div>
-                <h5 className="text-sm font-semibold mb-3 text-foreground">Product</h5>
+                <h5 className="text-sm font-semibold mb-3 text-foreground">{t("footer.product")}</h5>
                 <ul className="space-y-2 text-sm text-foreground/80">
-                  <li><Link href="#third-party-earning" className="hover:text-[var(--brand)]">Earning</Link></li>
-                  <li><Link href="#points-and-conversion" className="hover:text-[var(--brand)]">Points</Link></li>
-                  <li><Link href="#telemedicine" className="hover:text-[var(--brand)]">Telemedicine</Link></li>
-                  <li><Link href="#contact" className="hover:text-[var(--brand)]">Contact</Link></li>
+                  <li><Link href="#third-party-earning" className="hover:text-[var(--brand)]">{t("footer.earning")}</Link></li>
+                  <li><Link href="#points-and-conversion" className="hover:text-[var(--brand)]">{t("footer.points")}</Link></li>
+                  <li><Link href="#telemedicine" className="hover:text-[var(--brand)]">{t("footer.telemedicine")}</Link></li>
+                  <li><Link href="#contact" className="hover:text-[var(--brand)]">{t("footer.contact")}</Link></li>
                 </ul>
               </div>
               <div>
-                <h5 className="text-sm font-semibold mb-3 text-foreground">Company</h5>
+                <h5 className="text-sm font-semibold mb-3 text-foreground">{t("footer.company")}</h5>
                 <ul className="space-y-2 text-sm text-foreground/80">
-                  <li><Link href="#" className="hover:text-[var(--brand)]">About</Link></li>
-                  <li><Link href="#" className="hover:text-[var(--brand)]">Careers</Link></li>
-                  <li><Link href="#" className="hover:text-[var(--brand)]">Blog</Link></li>
+                  <li><Link href="#" className="hover:text-[var(--brand)]">{t("footer.about")}</Link></li>
+                  <li><Link href="#" className="hover:text-[var(--brand)]">{t("footer.careers")}</Link></li>
+                  <li><Link href="#" className="hover:text-[var(--brand)]">{t("footer.blog")}</Link></li>
                 </ul>
               </div>
               <div>
-                <h5 className="text-sm font-semibold mb-3 text-foreground">Resources</h5>
+                <h5 className="text-sm font-semibold mb-3 text-foreground">{t("footer.resources")}</h5>
                 <ul className="space-y-2 text-sm text-foreground/80">
-                  <li><Link href="#" className="hover:text-[var(--brand)]">Downloads</Link></li>
-                  <li><Link href="#" className="hover:text-[var(--brand)]">Documentation</Link></li>
-                  <li><Link href="#contact" className="hover:text-[var(--brand)]">Support</Link></li>
+                  <li><Link href="#" className="hover:text-[var(--brand)]">{t("footer.downloads")}</Link></li>
+                  <li><Link href="#" className="hover:text-[var(--brand)]">{t("footer.docs")}</Link></li>
+                  <li><Link href="#contact" className="hover:text-[var(--brand)]">{t("footer.support")}</Link></li>
                 </ul>
               </div>
             </nav>
           </div>
 
           <div className="mt-10 border-t border-black/10 dark:border-white/10 pt-6 flex items-center justify-between text-xs text-foreground/60">
-            <p>© {new Date().getFullYear()} Flash Point. All rights reserved.</p>
-            <p>Made with care — design-first, privacy-forward.</p>
+            <p>{t("footer.rights", { year: new Date().getFullYear() })}</p>
+            <p>{t("footer.made_with")}</p>
           </div>
         </div>
       </div>

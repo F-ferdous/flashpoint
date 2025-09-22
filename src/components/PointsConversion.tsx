@@ -1,4 +1,8 @@
+"use client";
+import { useI18n } from "@/lib/i18n";
+
 export default function PointsConversion() {
+  const { t } = useI18n();
   return (
     <section id="points-and-conversion" className="relative overflow-hidden bg-[var(--background)]">
       {/* ambient brand glow */}
@@ -10,21 +14,17 @@ export default function PointsConversion() {
         <div className="flex flex-col items-end text-right gap-3 mb-6 sm:mb-8">
           <p className="inline-flex w-fit items-center gap-2 text-xs font-medium px-2.5 py-1.5 rounded-full bg-[var(--brand-15)] border border-[var(--brand-25)] text-foreground/90">
             <span className="size-2 rounded-full bg-[var(--brand)]" />
-            Points & Currency
+            {t("points.badge")}
           </p>
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Points & Currency <span style={{ color: "var(--brand)" }}>Conversion</span>
-          </h2>
-          <p className="text-sm text-foreground/80 max-w-2xl">
-            Collect points seamlessly and convert to or from fiat with compliant rails.
-          </p>
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{t("points.title")}</h2>
+          <p className="text-sm text-foreground/80 max-w-2xl">{t("points.desc")}</p>
           {/* small CTA */}
           <div className="mt-2 self-end">
             <a
               href="#contact"
               className="inline-flex items-center gap-2 rounded-lg bg-[var(--brand)] text-black px-3.5 py-2 text-xs font-semibold shadow-sm hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--brand)] focus:ring-offset-[var(--surface)]"
             >
-              See conversion rates
+              {t("points.link")}
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d="M7 17L17 7" />
                 <path d="M7 7h10v10" />
@@ -49,8 +49,8 @@ export default function PointsConversion() {
                 </svg>
               </span>
               <div className="space-y-1">
-                <h3 className="text-base font-semibold">Collect & Transfer Points</h3>
-                <p className="text-sm/6 text-foreground/70">Deposit, withdraw, and transfer with OTP and limits. Role-based controls for agents.</p>
+                <h3 className="text-base font-semibold">{t("points.c1_title")}</h3>
+                <p className="text-sm/6 text-foreground/70">{t("points.c1_desc")}</p>
               </div>
             </div>
           </div>
@@ -70,8 +70,8 @@ export default function PointsConversion() {
                 </svg>
               </span>
               <div className="space-y-1">
-                <h3 className="text-base font-semibold">Convert to Currency</h3>
-                <p className="text-sm/6 text-foreground/70">Instant quotes with fees. Set min/max, KYC checks, and issue payouts securely.</p>
+                <h3 className="text-base font-semibold">{t("points.c2_title")}</h3>
+                <p className="text-sm/6 text-foreground/70">{t("points.c2_desc")}</p>
               </div>
             </div>
           </div>
@@ -94,8 +94,8 @@ export default function PointsConversion() {
                 </svg>
               </span>
               <div className="space-y-1">
-                <h3 className="text-base font-semibold">Buy Points with Currency</h3>
-                <p className="text-sm/6 text-foreground/70">Top-up via cards, bank, or agents. Auto-receipts and dispute workflows included.</p>
+                <h3 className="text-base font-semibold">{t("points.c3_title")}</h3>
+                <p className="text-sm/6 text-foreground/70">{t("points.c3_desc")}</p>
               </div>
             </div>
           </div>
