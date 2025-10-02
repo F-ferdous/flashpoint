@@ -36,8 +36,8 @@ export default function PointsConversion() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 animate-fade-in">
           {/* Collect & Transfer */}
           <div
-            className="group relative rounded-2xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)] p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.35)] hover:border-[var(--brand-25)] animate-rise"
-            style={{ animationDelay: '80ms' }}
+            className="group relative rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.25)] animate-rise"
+            style={{ animationDelay: '80ms', background: 'var(--card-sky)', borderColor: 'var(--card-sky-border)' }}
           >
             <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-[var(--brand)] to-transparent opacity-70" />
             <div className="flex items-start gap-3">
@@ -57,8 +57,8 @@ export default function PointsConversion() {
 
           {/* Convert to Currency */}
           <div
-            className="group relative rounded-2xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)] p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.35)] hover:border-[var(--brand-25)] animate-rise"
-            style={{ animationDelay: '160ms' }}
+            className="group relative rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.25)] animate-rise"
+            style={{ animationDelay: '160ms', background: 'var(--card-mint)', borderColor: 'var(--card-mint-border)' }}
           >
             <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-[var(--brand)] to-transparent opacity-70" />
             <div className="flex items-start gap-3">
@@ -78,8 +78,8 @@ export default function PointsConversion() {
 
           {/* Buy Points */}
           <div
-            className="group relative rounded-2xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)] p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.35)] hover:border-[var(--brand-25)] animate-rise"
-            style={{ animationDelay: '240ms' }}
+            className="group relative rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.25)] animate-rise"
+            style={{ animationDelay: '240ms', background: 'var(--card-lime)', borderColor: 'var(--card-lime-border)' }}
           >
             <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-[var(--brand)] to-transparent opacity-70" />
             <div className="flex items-start gap-3">

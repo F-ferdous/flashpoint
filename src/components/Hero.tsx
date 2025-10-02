@@ -42,7 +42,7 @@ export default function Hero() {
         </div>
 
         <div className="mt-10 sm:mt-14">
-          <div className="relative mx-auto max-w-6xl h-[260px] sm:h-[360px] lg:h-[440px] rounded-2xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)] overflow-hidden glow-brand animate-rise">
+          <div className="relative mx-auto max-w-6xl h-[260px] sm:h-[360px] lg:h-[440px] rounded-2xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)]/90 overflow-hidden glow-brand animate-rise">
             {/* decorative brand glow */}
             <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 size-[480px] rounded-full bg-[var(--brand)]/20 blur-3xl" />
 
@@ -57,18 +57,18 @@ export default function Hero() {
                 <div className="h-6 w-28 rounded-full bg-black/10 dark:bg-white/10" />
               </div>
               <div className="mt-4 grid grid-cols-12 gap-3 sm:gap-4">
-                <div className="col-span-12 md:col-span-8 rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.03] p-4 sm:p-6">
-                  <div className="h-24 sm:h-36 rounded-md bg-gradient-to-tr from-amber-400/20 via-yellow-300/10 to-transparent" />
+                <div className="col-span-12 md:col-span-8 rounded-xl border p-4 sm:p-6" style={{ background: 'var(--card-sky)', borderColor: 'var(--card-sky-border)' }}>
+                  <div className="h-24 sm:h-36 rounded-md bg-gradient-to-tr from-amber-400/15 via-yellow-300/10 to-transparent" />
                   <div className="mt-4 grid grid-cols-3 gap-3">
-                    <div className="h-16 rounded-md bg-black/5 dark:bg-white/5" />
-                    <div className="h-16 rounded-md bg-black/5 dark:bg-white/5" />
-                    <div className="h-16 rounded-md bg-black/5 dark:bg-white/5" />
+                    <div className="h-16 rounded-md border" style={{ background: 'var(--card-mint)', borderColor: 'var(--card-mint-border)' }} />
+                    <div className="h-16 rounded-md border" style={{ background: 'var(--card-rose)', borderColor: 'var(--card-rose-border)' }} />
+                    <div className="h-16 rounded-md border" style={{ background: 'var(--card-lime)', borderColor: 'var(--card-lime-border)' }} />
                   </div>
                 </div>
                 <div className="col-span-12 md:col-span-4 grid gap-3 sm:gap-4">
-                  <div className="h-24 rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.03]" />
-                  <div className="h-24 rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.03]" />
-                  <div className="h-24 rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.03]" />
+                  <div className="h-24 rounded-xl border" style={{ background: 'var(--card-rose)', borderColor: 'var(--card-rose-border)' }} />
+                  <div className="h-24 rounded-xl border" style={{ background: 'var(--card-mint)', borderColor: 'var(--card-mint-border)' }} />
+                  <div className="h-24 rounded-xl border" style={{ background: 'var(--card-sky)', borderColor: 'var(--card-sky-border)' }} />
                 </div>
               </div>
 

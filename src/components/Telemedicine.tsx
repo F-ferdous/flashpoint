@@ -24,7 +24,10 @@ export default function Telemedicine() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 animate-fade-in">
           {/* Card 1 */}
-          <div className="group relative rounded-2xl border border-white/10 bg-[var(--surface-2)] p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.35)] hover:border-[var(--brand-25)]">
+          <div
+            className="group relative rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.25)]"
+            style={{ background: "var(--card-sky)", borderColor: "var(--card-sky-border)" }}
+          >
             <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-[var(--brand)] to-transparent opacity-70" />
             <div className="flex items-start gap-3">
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[var(--brand-15)] border border-[var(--brand-25)] text-foreground">
@@ -42,7 +45,10 @@ export default function Telemedicine() {
           </div>
 
           {/* Card 2 */}
-          <div className="group relative rounded-2xl border border-white/10 bg-[var(--surface-2)] p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.35)] hover:border-[var(--brand-25)]">
+          <div
+            className="group relative rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.25)]"
+            style={{ background: "var(--card-rose)", borderColor: "var(--card-rose-border)" }}
+          >
             <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-[var(--brand)] to-transparent opacity-70" />
             <div className="flex items-start gap-3">
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[var(--brand-15)] border border-[var(--brand-25)] text-foreground">
@@ -60,7 +66,10 @@ export default function Telemedicine() {
           </div>
 
           {/* Card 3 */}
-          <div className="group relative rounded-2xl border border-white/10 bg-[var(--surface-2)] p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.35)] hover:border-[var(--brand-25)]">
+          <div
+            className="group relative rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.25)]"
+            style={{ background: "var(--card-mint)", borderColor: "var(--card-mint-border)" }}
+          >
             <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-[var(--brand)] to-transparent opacity-70" />
             <div className="flex items-start gap-3">
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[var(--brand-15)] border border-[var(--brand-25)] text-foreground">

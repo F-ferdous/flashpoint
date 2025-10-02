@@ -28,7 +28,8 @@ export default function ThirdPartyEarning() {
         {/* Panels row (design signature inspired) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {/* 1. Create Account */}
-          <article className="group relative rounded-2xl border border-black/10 dark:border-white/10 bg-[var(--surface)]/90 p-5 sm:p-6 overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_60px_-20px_rgba(0,0,0,0.55)] hover:border-[var(--brand-25)]">
+          <article className="group relative rounded-2xl border p-5 sm:p-6 overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_60px_-20px_rgba(0,0,0,0.35)]"
+                   style={{ background: "var(--card-sky)", borderColor: "var(--card-sky-border)" }}>
             {/* top accent */}
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
             {/* icon */}
@@ -47,7 +48,10 @@ export default function ThirdPartyEarning() {
           </article>
 
           {/* 2. Watch Ads */}
-          <article className="group relative rounded-2xl border border-black/10 dark:border-white/10 bg-[var(--surface)]/90 p-5 sm:p-6 overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_60px_-20px_rgba(0,0,0,0.55)] hover:border-[var(--brand-25)]">
+          <article
+            className="group relative rounded-2xl border p-5 sm:p-6 overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_60px_-20px_rgba(0,0,0,0.35)]"
+            style={{ background: "var(--card-rose)", borderColor: "var(--card-rose-border)" }}
+          >
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
             <div className="mb-3 inline-flex items-center justify-center rounded-xl border border-black/15 dark:border-white/15 bg-gradient-to-br from-black/10 to-black/5 dark:from-white/10 dark:to-white/5 p-2.5 text-foreground">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -60,7 +64,10 @@ export default function ThirdPartyEarning() {
           </article>
 
           {/* 3. Install Apps */}
-          <article className="group relative rounded-2xl border border-black/10 dark:border-white/10 bg-[var(--surface)]/90 p-5 sm:p-6 overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_60px_-20px_rgba(0,0,0,0.55)] hover:border-[var(--brand-25)]">
+          <article
+            className="group relative rounded-2xl border p-5 sm:p-6 overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_60px_-20px_rgba(0,0,0,0.35)]"
+            style={{ background: "var(--card-mint)", borderColor: "var(--card-mint-border)" }}
+          >
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
             <div className="mb-3 inline-flex items-center justify-center rounded-xl border border-black/15 dark:border-white/15 bg-gradient-to-br from-black/10 to-black/5 dark:from-white/10 dark:to-white/5 p-2.5 text-foreground">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -75,7 +82,10 @@ export default function ThirdPartyEarning() {
           </article>
 
           {/* 4. Earn Points */}
-          <article className="group relative rounded-2xl border border-black/10 dark:border-white/10 bg-[var(--surface)]/90 p-5 sm:p-6 overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_60px_-20px_rgba(0,0,0,0.55)] hover:border-[var(--brand-25)]">
+          <article
+            className="group relative rounded-2xl border p-5 sm:p-6 overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_60px_-20px_rgba(0,0,0,0.35)]"
+            style={{ background: "var(--card-lime)", borderColor: "var(--card-lime-border)" }}
+          >
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
             <div className="mb-3 inline-flex items-center justify-center rounded-xl border border-black/15 dark:border-white/15 bg-gradient-to-br from-black/10 to-black/5 dark:from-white/10 dark:to-white/5 p-2.5 text-foreground">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

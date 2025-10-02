@@ -1,14 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  /* Default: Light theme (eye-comfortable) */
-  /* Light background: solid + gradient (solid is fallback) */
-  --background-solid: hsla(0, 41%, 95%, 1); /* #F7ECEC */
-  --background-gradient: linear-gradient(90deg, hsla(0, 41%, 95%, 1) 0%, hsla(205, 71%, 86%, 1) 100%);
+  /* Default: Light theme (subtle whitish‑blue) */
+  /* Background: very light blue tint for airy feel */
+  --background-solid: #f7fbff; /* even whiter/cooler */
+  --background-gradient: linear-gradient(180deg, #f7fbff 0%, #f3f9ff 100%);
   /* Retain a direct token for places explicitly using --background */
   --background: var(--background-solid);
-  --surface: #fafcff; /* subtle cool off-white */
-  --surface-2: #f4f7fc; /* subtle deeper cool surface */
+  /* Surfaces: slightly bluish whites to sit above background */
+  --surface: #fbfdff; /* subtle cool off‑white */
+  --surface-2: #f0f6ff; /* softer, slightly lighter */
   --foreground: #0b0b0c; /* blackish */
   --logo-flash: #0b0b0c; /* Flash text color in light mode */
 
@@ -34,6 +35,16 @@
   --c2a: rgba(254, 255, 196, 0.18);
   --c3a: rgba(255, 222, 99, 0.12);
   --c4a: rgba(255, 188, 76, 0.10);
+
+  /* Pastel card colors (inspired by reference) */
+  --card-sky: #edf6ff;           /* light sky */
+  --card-sky-border: rgba(59, 130, 246, 0.28); /* sky-500 */
+  --card-rose: #ffecef;          /* light rose */
+  --card-rose-border: rgba(244, 63, 94, 0.28); /* rose-500 */
+  --card-mint: #eafbf4;          /* light mint */
+  --card-mint-border: rgba(16, 185, 129, 0.28); /* emerald-500 */
+  --card-lime: #f1fae6;          /* light lime */
+  --card-lime-border: rgba(163, 230, 53, 0.30); /* lime-400 */
 }
 
 @theme inline {

@@ -70,7 +70,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Global site header */}
       <Navbar />
       {/* Mobile top nav */}
-      <header className="md:hidden sticky top-0 z-40 bg-[var(--background)]/80 backdrop-blur border-b border-black/10 dark:border-white/10">
+      <header className="md:hidden sticky top-16 z-40 bg-[var(--background)]/80 backdrop-blur border-b border-black/10 dark:border-white/10">
         <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
           <Link href="/admin" className="font-semibold tracking-tight">
             <span className="logo-flash">Flash</span>
@@ -79,7 +79,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Link>
           <Link href="/" className="text-sm hover:opacity-80">{t("dash.common.back_to_site")}</Link>
         </div>
-        <nav className="mx-auto max-w-7xl px-2 pb-2 overflow-x-auto">
+        <nav className="mx-auto max-w-7xl px-2 pt-2 pb-3 overflow-x-auto">
           <ul className="flex gap-2">
             {navItems.map((item) => {
               const active = pathname === item.href;
