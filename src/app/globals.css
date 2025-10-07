@@ -13,16 +13,16 @@
   --foreground: #0b0b0c; /* blackish */
   --logo-flash: #0b0b0c; /* Flash text color in light mode */
 
-  /* Brand yellow (LIGHT MODE): updated to #dca920 */
-  --brand: #dca920; /* primary accent in light mode */
-  --brand-900: #7a5a07; /* optional deep shade (approx) */
-  --brand-700: #a47f12; /* optional mid shade (approx) */
-  --brand-300: #f3d37a; /* optional light shade (approx) */
-  --brand-15: rgba(220, 169, 32, 0.15);
-  --brand-25: rgba(220, 169, 32, 0.25);
-  --brand-35: rgba(220, 169, 32, 0.35);
-  --brand-45: rgba(220, 169, 32, 0.45);
-  --brand-60: rgba(220, 169, 32, 0.60);
+  /* Brand GREEN (LIGHT MODE): emerald theme */
+  --brand: #10b981; /* emerald-500 */
+  --brand-900: #064e3b; /* emerald-900 */
+  --brand-700: #047857; /* emerald-700 */
+  --brand-300: #6ee7b7; /* emerald-300 */
+  --brand-15: rgba(16, 185, 129, 0.15);
+  --brand-25: rgba(16, 185, 129, 0.25);
+  --brand-35: rgba(16, 185, 129, 0.35);
+  --brand-45: rgba(16, 185, 129, 0.45);
+  --brand-60: rgba(16, 185, 129, 0.60);
 
   /* Legacy palette kept for sections used elsewhere */
   --c1: #799EFF; /* blue */
@@ -60,13 +60,13 @@
   --background-solid: #0a0a0a;
   --background-gradient: none;
   --background: #0a0a0a;
-  /* Preserve previous brand in dark mode */
-  --brand: #f5c33b;
-  --brand-15: rgba(245, 195, 59, 0.15);
-  --brand-25: rgba(245, 195, 59, 0.25);
-  --brand-35: rgba(245, 195, 59, 0.35);
-  --brand-45: rgba(245, 195, 59, 0.45);
-  --brand-60: rgba(245, 195, 59, 0.60);
+  /* Emerald brand in dark mode as well */
+  --brand: #10b981;
+  --brand-15: rgba(16, 185, 129, 0.15);
+  --brand-25: rgba(16, 185, 129, 0.25);
+  --brand-35: rgba(16, 185, 129, 0.35);
+  --brand-45: rgba(16, 185, 129, 0.45);
+  --brand-60: rgba(16, 185, 129, 0.60);
   --surface: #121212;
   --surface-2: #181818;
   --foreground: #f5f5f5;
@@ -107,7 +107,7 @@ body {
 /* Brand utilities */
 .btn-brand {
   background: var(--brand);
-  color: #111; /* high contrast on yellow */
+  color: #fff; /* white text on green */
 }
 .btn-brand-outline {
   border: 1px solid var(--brand);

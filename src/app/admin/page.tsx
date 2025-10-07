@@ -1,13 +1,28 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { DollarSign, ShieldCheck, Users, Wallet } from "lucide-react";
+import { Users } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { db } from "@/lib/firebase";
+import { collection, onSnapshot } from "firebase/firestore";
 
 export default function AdminDashboardPage() {
   const { t } = useI18n();
+  const [agentCount, setAgentCount] = useState(0);
+  const [customerCount, setCustomerCount] = useState(0);
+
+  useEffect(() => {
+    const unsubAgents = onSnapshot(collection(db, "agents"), (snap) => setAgentCount(snap.size));
+    const unsubCustomers = onSnapshot(collection(db, "customers"), (snap) => setCustomerCount(snap.size));
+    return () => {
+      unsubAgents();
+      unsubCustomers();
+    };
+  }, []);
+
   return (
     <div className="space-y-5 sm:space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -21,27 +36,23 @@ export default function AdminDashboardPage() {
         </div>
       </header>
 
-      <section className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <CardStat icon={<Users className="h-4 w-4 sm:h-5 sm:w-5" />} label={t("dash.admin.stats.active_agents")} value="128" delta="+4.1%" tone={{ bg: "bg-emerald-500/15", text: "text-emerald-600 dark:text-emerald-300" }} />
-        <CardStat icon={<Wallet className="h-4 w-4 sm:h-5 sm:w-5" />} label={t("dash.admin.stats.wallet_balance")} value="$42,310" delta="+2.3%" tone={{ bg: "bg-rose-500/15", text: "text-rose-600 dark:text-rose-300" }} />
-        <CardStat icon={<DollarSign className="h-4 w-4 sm:h-5 sm:w-5" />} label={t("dash.admin.stats.transfers_today")} value="$8,920" delta="+12.0%" tone={{ bg: "bg-sky-500/15", text: "text-sky-600 dark:text-sky-300" }} />
-        <CardStat icon={<ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5" />} label={t("dash.admin.stats.verifications")} value="56" delta="-3.4%" tone={{ bg: "bg-amber-500/15", text: "text-amber-700 dark:text-amber-300" }} />
+      <section className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
+        <CardStat icon={<Users className="h-4 w-4 sm:h-5 sm:w-5" />} label={t("dash.admin.stats.active_agents")} value={String(agentCount)} delta="" tone={{ bg: "bg-emerald-500/15", text: "text-emerald-600 dark:text-emerald-300" }} />
+        {(() => {
+          const lbl = t("dash.admin.stats.customers");
+          const label = lbl === "dash.admin.stats.customers" ? "Customers" : lbl;
+          return (
+            <CardStat icon={<Users className="h-4 w-4 sm:h-5 sm:w-5" />} label={label} value={String(customerCount)} delta="" tone={{ bg: "bg-sky-500/15", text: "text-sky-600 dark:text-sky-300" }} />
+          );
+        })()}
       </section>
 
       <section className="rounded-xl border border-black/10 dark:border-white/10 bg-[var(--surface)]/60 dark:bg-white/5">
         <div className="p-3 sm:p-4 flex items-center justify-between">
           <h2 className="text-sm sm:text-base font-semibold">{t("dash.common.recent_activity")}</h2>
-          <Button variant="ghost" className="text-xs sm:text-sm h-8 px-3">{t("dash.common.view_all")}</Button>
         </div>
         <Separator />
-        <ul className="divide-y divide-black/10 dark:divide-white/10">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <li key={i} className="p-3 sm:p-4 text-[13px] sm:text-sm grid gap-1 sm:grid-cols-[180px_1fr]">
-              <div className="text-foreground/70 order-1 sm:order-none">{new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}</div>
-              <div className="order-2 sm:order-none"><span className="font-medium">Agent #{(i + 1) * 11}</span> completed a verification and transferred <span className="font-medium">$120</span> to Customer #{(i + 1) * 7}.</div>
-            </li>
-          ))}
-        </ul>
+        <div className="p-6 text-sm text-foreground/70">No recent activity.</div>
       </section>
     </div>
   );

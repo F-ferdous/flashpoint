@@ -32,21 +32,28 @@ export default function ReferalsPage() {
     const unsub = onAuthStateChanged(auth, (user) => {
       const id = user?.uid || null;
       setUid(id);
-      if (id) {
-        const link = `${window.location.origin}/signup?ref=${id}`;
-        setRefLink(link);
-        // Subscribe to pending signups for this agent
-        const q = query(
-          collection(db, "pendingUsers"),
-          where("referrerUid", "==", id),
-          where("status", "==", "Pending")
-        );
-        const unsubPending = onSnapshot(q, (snap) => {
-          const items = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
-          setPending(items);
-        });
-        return () => unsubPending();
-      }
+      if (!id) return;
+      // Build referral link using agentId similar to userDashboard (customerId)
+      const unsubAgent = onSnapshot(doc(db, "agents", id), (snap: any) => {
+        const agentId = (snap.exists() ? (snap.data() as any)?.agentId : null) as string | null;
+        const shortId = agentId && agentId.length > 0 ? agentId : id;
+        setRefLink(`${window.location.origin}/r/${shortId}`);
+      });
+
+      // Subscribe to pending signups for this agent
+      const q = query(
+        collection(db, "pendingUsers"),
+        where("referrerUid", "==", id),
+        where("status", "==", "Pending")
+      );
+      const unsubPending = onSnapshot(q, (snap) => {
+        const items = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
+        setPending(items);
+      });
+      return () => {
+        unsubPending();
+        unsubAgent();
+      };
     });
     return () => unsub();
   }, []);

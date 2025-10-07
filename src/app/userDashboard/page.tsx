@@ -47,7 +47,7 @@ export default function UserHomePage() {
     const unsubMonthly = onSnapshot(monthlyQuery, (snap) => {
       const docs = snap.docs.map(d => d.data());
       const earnings = docs.reduce((sum: number, entry: any) => sum + (entry.amount || 0), 0);
-      const surveys = docs.filter((entry: any) => entry.source === 'cpx_research').length;
+      const surveys = docs.filter((entry: any) => entry.source === 'adgem').length;
       const tasks = docs.length;
       setMonthlyStats({ earnings, surveys, tasks });
     });
@@ -103,13 +103,7 @@ export default function UserHomePage() {
           delta="This month" 
           tone={{ bg: "bg-sky-500/15", text: "text-sky-600 dark:text-sky-300" }} 
         />
-        <CardStat 
-          icon={<Stethoscope className="h-4 w-4" />} 
-          label={t("dash.user.nav.telemedicine")} 
-          value="Active" 
-          delta="Available" 
-          tone={{ bg: "bg-rose-500/15", text: "text-rose-600 dark:text-rose-300" }} 
-        />
+        {/* Telemedicine card removed as requested */}
       </section>
 
       <section className="rounded-xl border border-black/10 dark:border-white/10 bg-[var(--surface)]/60 dark:bg-white/5">
@@ -125,8 +119,8 @@ export default function UserHomePage() {
         <ul className="divide-y divide-black/10 dark:divide-white/10">
           {recentEarnings.length > 0 ? recentEarnings.map((earning) => {
             const isPositive = earning.amount >= 0;
-            const source = earning.source === 'cpx_research' ? 'CPX Research Survey' :
-                          earning.source?.includes('chargeback') ? 'Survey Refund' :
+            const source = earning.source === 'adgem' ? 'AdGem Offer' :
+                          earning.source?.includes('chargeback') ? 'Offer Refund' :
                           earning.offer_name || 'Earning Task';
             
             return (
@@ -147,12 +141,12 @@ export default function UserHomePage() {
                   <Badge 
                     variant="outline" 
                     className={`ml-2 ${
-                      earning.source === 'cpx_research' ? 'bg-emerald-500/15 text-emerald-600 border-emerald-200' :
+                      earning.source === 'adgem' ? 'bg-emerald-500/15 text-emerald-600 border-emerald-200' :
                       earning.source?.includes('chargeback') ? 'bg-red-500/15 text-red-600 border-red-200' :
                       'bg-blue-500/15 text-blue-600 border-blue-200'
                     }`}
                   >
-                    {earning.source === 'cpx_research' ? 'Survey' :
+                    {earning.source === 'adgem' ? 'Offer' :
                      earning.source?.includes('chargeback') ? 'Refund' :
                      'Task'}
                   </Badge>

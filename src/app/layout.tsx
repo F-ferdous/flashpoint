@@ -19,6 +19,12 @@ export const metadata: Metadata = {
   title: "GESA Flash Bangladesh — Learn & Earn, Health & Wealth, ShopWell, Entrepreneurship",
   description:
     "The Gesa Flash Program is a collaborative initiative supported by Flash Service Agency Limited that provides technology-driven services to promote education, health, skill development, social awareness, and earning opportunities in Bangladesh.",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
+  themeColor: "#10b981",
   keywords: [
     "GESA Flash Bangladesh",
     "Learn & Earn",
@@ -37,13 +43,13 @@ export const metadata: Metadata = {
     "Earning Opportunities",
     "Bangladesh",
   ],
-  applicationName: "Flash Point",
+  applicationName: "Flash Services Agency",
   openGraph: {
     title: "GESA Flash Bangladesh — Learn & Earn, Health & Wealth, ShopWell, Entrepreneurship",
     description:
       "The Gesa Flash Program is a collaborative initiative supported by Flash Service Agency Limited that provides technology-driven services to promote education, health, skill development, social awareness, and earning opportunities in Bangladesh.",
     url: "/",
-    siteName: "Flash Point",
+    siteName: "Flash Services Agency",
     locale: "bn_BD",
     type: "website",
   },

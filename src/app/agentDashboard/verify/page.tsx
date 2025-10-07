@@ -22,24 +22,11 @@ export default function VerifyPage() {
         <div className="p-4 flex items-center justify-between">
           <h2 className="text-base font-semibold">Pending</h2>
           <div className="flex gap-2">
-            <Badge variant="warning">8 awaiting</Badge>
+            <Badge variant="warning">— awaiting</Badge>
           </div>
         </div>
         <Separator />
-        <ul className="divide-y divide-black/10 dark:divide-white/10">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <li key={i} className="p-4 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
-              <div>
-                <div className="font-medium">Customer #{500 + i}</div>
-                <div className="text-sm text-foreground/70">National ID • Submitted {i + 1}h ago</div>
-              </div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="secondary">View</Button>
-                <Button size="sm">Approve</Button>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <div className="p-4 text-sm text-foreground/70">No pending verifications yet.</div>
       </section>
     </div>
   );

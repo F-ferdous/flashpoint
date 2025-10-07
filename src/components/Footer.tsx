@@ -5,56 +5,49 @@ import { useI18n } from "@/lib/i18n";
 export default function Footer() {
   const { t } = useI18n();
   return (
-    <footer className="mt-16 relative overflow-hidden bg-[var(--background)]">
+    <footer className="mt-0 relative overflow-hidden bg-emerald-900 text-white">
       {/* ambient brand glow */}
-      <div className="pointer-events-none absolute inset-0 opacity-30">
-        <div className="absolute -top-24 left-1/2 -translate-x-1/2 h-72 w-[52rem] rounded-full bg-[var(--brand)]/20 blur-3xl" />
+      <div className="pointer-events-none absolute inset-0 opacity-20">
+        <div className="absolute -top-24 left-1/2 -translate-x-1/2 h-72 w-[52rem] rounded-full bg-emerald-500/30 blur-3xl" />
       </div>
 
-      <div className="border-t border-black/10 dark:border-white/10 bg-[var(--surface-2)]">
+      <div className="border-t border-white/10 bg-emerald-900/95">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid gap-10 md:grid-cols-4">
             {/* Brand + info */}
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                {/* Logo copied from Navbar */}
+                {/* Brand logo: green ring + magenta F */}
                 <svg
                   width="32"
                   height="32"
-                  viewBox="0 0 32 32"
+                  viewBox="0 0 64 64"
                   xmlns="http://www.w3.org/2000/svg"
                   aria-hidden
-                  className="shrink-0 rounded-xl shadow-[0_10px_30px_-10px_rgba(245,195,59,0.35)]"
+                  className="shrink-0"
                 >
-                  <rect
-                    x="2"
-                    y="2"
-                    width="28"
-                    height="28"
-                    rx="6"
-                    fill="var(--brand)"
+                  <circle
+                    cx="32"
+                    cy="32"
+                    r="26"
+                    fill="none"
+                    stroke="#10b981"
+                    strokeWidth="8"
                   />
-                  <g fill="#0a0a0a">
-                    <circle cx="11" cy="11" r="1.6" />
-                    <circle cx="16" cy="11" r="1.6" />
-                    <circle cx="21" cy="11" r="1.6" />
-                    <circle cx="11" cy="16" r="1.6" />
-                    <circle cx="16" cy="16" r="1.6" />
-                    <circle cx="21" cy="16" r="1.6" />
-                    <circle cx="11" cy="21" r="1.6" />
-                    <circle cx="16" cy="21" r="1.6" />
-                    <circle cx="21" cy="21" r="1.6" />
-                  </g>
+                  <path
+                    fill="#a21caf"
+                    d="M38 14c5 0 9 0 9 0l-4 7H31c-3.5 0-6 2.5-6 6h14c4.4 0 8 3.6 8 8H18c0-12 8-21 20-21z"
+                  />
+                  <path fill="#a21caf" d="M46 35c0 3.9-3.1 7-7 7H26l4-7h16z" />
                 </svg>
                 <span className="text-lg font-semibold tracking-tight leading-none">
-                  <span className="logo-flash">Flash</span>
-                  <span style={{ color: "var(--brand)" }}>Point</span>
+                  {t("common.brand_title")}
                 </span>
               </div>
-              <p className="text-sm text-foreground/70 max-w-xs">
+              <p className="text-sm text-white/80 max-w-xs">
                 {t("footer.blurb1")}
               </p>
-              <p className="text-sm text-foreground/60 max-w-xs">
+              <p className="text-sm text-white/70 max-w-xs">
                 {t("footer.blurb2")}
               </p>
             </div>
@@ -65,14 +58,14 @@ export default function Footer() {
               className="md:col-span-3 grid grid-cols-2 sm:grid-cols-4 gap-8"
             >
               <div>
-                <h5 className="text-sm font-semibold mb-3 text-foreground">
+                <h5 className="text-sm font-semibold mb-3 text-white">
                   {t("footer.product")}
                 </h5>
-                <ul className="space-y-2 text-sm text-foreground/80">
+                <ul className="space-y-2 text-sm text-white/80">
                   <li>
                     <Link
                       href="/coming-soon"
-                      className="hover:text-[var(--brand)]"
+                      className="hover:text-emerald-200"
                     >
                       {t("footer.earning")}
                     </Link>
@@ -80,7 +73,7 @@ export default function Footer() {
                   <li>
                     <Link
                       href="/coming-soon"
-                      className="hover:text-[var(--brand)]"
+                      className="hover:text-emerald-200"
                     >
                       {t("footer.points")}
                     </Link>
@@ -88,7 +81,7 @@ export default function Footer() {
                   <li>
                     <Link
                       href="/coming-soon"
-                      className="hover:text-[var(--brand)]"
+                      className="hover:text-emerald-200"
                     >
                       {t("footer.telemedicine")}
                     </Link>
@@ -96,7 +89,7 @@ export default function Footer() {
                   <li>
                     <Link
                       href="/coming-soon"
-                      className="hover:text-[var(--brand)]"
+                      className="hover:text-emerald-200"
                     >
                       {t("footer.contact")}
                     </Link>
@@ -104,14 +97,14 @@ export default function Footer() {
                 </ul>
               </div>
               <div>
-                <h5 className="text-sm font-semibold mb-3 text-foreground">
+                <h5 className="text-sm font-semibold mb-3 text-white">
                   {t("footer.company")}
                 </h5>
-                <ul className="space-y-2 text-sm text-foreground/80">
+                <ul className="space-y-2 text-sm text-white/80">
                   <li>
                     <Link
                       href="/coming-soon"
-                      className="hover:text-[var(--brand)]"
+                      className="hover:text-emerald-200"
                     >
                       {t("footer.about")}
                     </Link>
@@ -119,7 +112,7 @@ export default function Footer() {
                   <li>
                     <Link
                       href="/coming-soon"
-                      className="hover:text-[var(--brand)]"
+                      className="hover:text-emerald-200"
                     >
                       {t("footer.careers")}
                     </Link>
@@ -127,7 +120,7 @@ export default function Footer() {
                   <li>
                     <Link
                       href="/coming-soon"
-                      className="hover:text-[var(--brand)]"
+                      className="hover:text-emerald-200"
                     >
                       {t("footer.blog")}
                     </Link>
@@ -135,14 +128,14 @@ export default function Footer() {
                 </ul>
               </div>
               <div>
-                <h5 className="text-sm font-semibold mb-3 text-foreground">
+                <h5 className="text-sm font-semibold mb-3 text-white">
                   {t("footer.resources")}
                 </h5>
-                <ul className="space-y-2 text-sm text-foreground/80">
+                <ul className="space-y-2 text-sm text-white/80">
                   <li>
                     <Link
                       href="/coming-soon"
-                      className="hover:text-[var(--brand)]"
+                      className="hover:text-emerald-200"
                     >
                       {t("footer.downloads")}
                     </Link>
@@ -150,7 +143,7 @@ export default function Footer() {
                   <li>
                     <Link
                       href="/coming-soon"
-                      className="hover:text-[var(--brand)]"
+                      className="hover:text-emerald-200"
                     >
                       {t("footer.docs")}
                     </Link>
@@ -158,7 +151,7 @@ export default function Footer() {
                   <li>
                     <Link
                       href="/coming-soon"
-                      className="hover:text-[var(--brand)]"
+                      className="hover:text-emerald-200"
                     >
                       {t("footer.support")}
                     </Link>
@@ -166,14 +159,14 @@ export default function Footer() {
                 </ul>
               </div>
               <div>
-                <h5 className="text-sm font-semibold mb-3 text-foreground">
+                <h5 className="text-sm font-semibold mb-3 text-white">
                   {t("footer.legal")}
                 </h5>
-                <ul className="space-y-2 text-sm text-foreground/80">
+                <ul className="space-y-2 text-sm text-white/80">
                   <li>
                     <Link
                       href="/privacy-policy"
-                      className="hover:text-[var(--brand)]"
+                      className="hover:text-emerald-200"
                     >
                       {t("footer.privacy")}
                     </Link>
@@ -181,7 +174,7 @@ export default function Footer() {
                   <li>
                     <Link
                       href="/terms-and-conditions"
-                      className="hover:text-[var(--brand)]"
+                      className="hover:text-emerald-200"
                     >
                       {t("footer.terms")}
                     </Link>
@@ -191,7 +184,7 @@ export default function Footer() {
             </nav>
           </div>
 
-          <div className="mt-10 border-t border-black/10 dark:border-white/10 pt-6 flex items-center justify-between text-xs text-foreground/60">
+          <div className="mt-10 border-top border-white/10 pt-6 flex items-center justify-between text-xs text-white/70">
             <p>{t("footer.rights", { year: new Date().getFullYear() })}</p>
             <p>{t("footer.made_with")}</p>
           </div>

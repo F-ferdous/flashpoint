@@ -22,10 +22,10 @@ export default function AgentHomePage() {
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <CardStat icon={<Users className="h-4 w-4" />} label={t("dash.agent.stats.customers")} value="245" delta="+3.2%" tone={{ bg: "bg-sky-500/15", text: "text-sky-600 dark:text-sky-300" }} />
-        <CardStat icon={<ShieldCheck className="h-4 w-4" />} label={t("dash.agent.stats.verifications")} value="34" delta="+5.1%" tone={{ bg: "bg-amber-500/15", text: "text-amber-700 dark:text-amber-300" }} />
-        <CardStat icon={<Gift className="h-4 w-4" />} label={t("dash.agent.stats.referals")} value="12" delta="+1.9%" tone={{ bg: "bg-violet-500/15", text: "text-violet-600 dark:text-violet-300" }} />
-        <CardStat icon={<Wallet className="h-4 w-4" />} label={t("dash.agent.stats.earnings")} value="$ 1,280" delta="+8.6%" tone={{ bg: "bg-emerald-500/15", text: "text-emerald-600 dark:text-emerald-300" }} />
+        <CardStat icon={<Users className="h-4 w-4" />} label={t("dash.agent.stats.customers")} value="—" delta="—" tone={{ bg: "bg-sky-500/15", text: "text-sky-600 dark:text-sky-300" }} />
+        <CardStat icon={<ShieldCheck className="h-4 w-4" />} label={t("dash.agent.stats.verifications")} value="—" delta="—" tone={{ bg: "bg-amber-500/15", text: "text-amber-700 dark:text-amber-300" }} />
+        <CardStat icon={<Gift className="h-4 w-4" />} label={t("dash.agent.stats.referals")} value="—" delta="—" tone={{ bg: "bg-violet-500/15", text: "text-violet-600 dark:text-violet-300" }} />
+        <CardStat icon={<Wallet className="h-4 w-4" />} label={t("dash.agent.stats.earnings")} value="—" delta="—" tone={{ bg: "bg-emerald-500/15", text: "text-emerald-600 dark:text-emerald-300" }} />
       </section>
 
       <section className="rounded-xl border border-black/10 dark:border-white/10 bg-[var(--surface)]/60 dark:bg-white/5">
@@ -34,14 +34,7 @@ export default function AgentHomePage() {
           <Button variant="ghost" className="text-sm">{t("dash.common.view_all")}</Button>
         </div>
         <Separator />
-        <ul className="divide-y divide-black/10 dark:divide-white/10">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <li key={i} className="p-4 text-sm grid gap-1 sm:grid-cols-[180px_1fr]">
-              <div className="text-foreground/70">{new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}</div>
-              <div>Verified Customer #{(i + 1) * 9} and earned <span className="font-medium">$ {(15 + i).toFixed(2)}</span>.</div>
-            </li>
-          ))}
-        </ul>
+        <div className="p-4 text-sm text-foreground/70">No recent activity yet.</div>
       </section>
     </div>
   );

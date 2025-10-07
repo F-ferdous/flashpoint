@@ -46,13 +46,23 @@ export default function EarningsPage() {
     // Initialize earning tasks
     setTasks([
       {
-        id: 'cpx-surveys',
-        title: 'Complete Surveys',
-        description: 'Answer surveys and earn rewards based on length and complexity',
-        reward: '$0.25 - $5.00',
+        id: 'adgem-offers',
+        title: 'AdGem Offerwall',
+        description: 'Complete surveys, offers, and app installs to earn rewards',
+        reward: '$0.10 - $25.00',
         points: 25,
         icon: <Target className="h-5 w-5" />,
         type: 'survey',
+        status: 'available'
+      },
+      {
+        id: 'revenuecpm-link',
+        title: 'Watch Ads (RevenueCPM)',
+        description: 'Open the ads page and start earning by watching ads',
+        reward: 'Varies',
+        points: 5,
+        icon: <Play className="h-5 w-5" />,
+        type: 'video',
         status: 'available'
       },
       {
@@ -115,26 +125,34 @@ export default function EarningsPage() {
     setLoading(prev => ({ ...prev, [task.id]: true }));
 
     try {
-      if (task.id === 'cpx-surveys') {
-        // Handle CPX Research surveys
-        const response = await fetch(`/api/cpx-research/generate-url?userId=${uid}`);
+      if (task.id === 'adgem-offers') {
+        // Handle AdGem offerwall
+        const response = await fetch(`/api/adgem-url?userId=${uid}`);
         const data = await response.json();
-        
+
         if (data.success) {
-          // Open CPX Research in a new window
-          window.open(data.url, '_blank', 'width=800,height=600');
-          toast({ 
-            title: 'Survey window opened', 
-            description: 'Complete surveys in the new window to earn rewards!',
-            variant: 'success' 
+          window.open(data.url, '_blank', 'width=900,height=700');
+          toast({
+            title: 'Offerwall opened',
+            description: 'Complete AdGem offers to earn rewards!',
+            variant: 'success'
           });
         } else {
-          toast({ 
-            title: 'Configuration needed', 
-            description: data.error || 'CPX Research not configured',
-            variant: 'destructive' 
+          toast({
+            title: 'Configuration needed',
+            description: data.error || 'AdGem not configured',
+            variant: 'destructive'
           });
         }
+      } else if (task.id === 'revenuecpm-link') {
+        // Open the provided external ads link only on explicit user click
+        const externalUrl = 'https://www.revenuecpmgate.com/n0qnaa5yhh?key=71ac802b2f41d2ba32121f9ad3d39e9b';
+        window.open(externalUrl, '_blank', 'width=900,height=700');
+        toast({
+          title: 'Ads page opened',
+          description: 'Watch ads on the opened page to earn.',
+          variant: 'success'
+        });
       } else {
         // For other task types, show a placeholder message
         toast({ 
@@ -240,13 +258,13 @@ export default function EarningsPage() {
                   </td>
                   <td className="p-3">
                     <Badge variant="outline" className={
-                      row.source === 'cpx_research' ? 'bg-emerald-500/15 text-emerald-600 border-emerald-200' :
+                      row.source === 'adgem' ? 'bg-emerald-500/15 text-emerald-600 border-emerald-200' :
                       row.source?.includes('chargeback') ? 'bg-red-500/15 text-red-600 border-red-200' :
                       'bg-blue-500/15 text-blue-600 border-blue-200'
                     }>
-                      {row.source === 'cpx_research' ? 'Survey' :
+                      {row.source === 'adgem' ? 'Offer' :
                        row.source?.includes('chargeback') ? 'Refund' :
-                       'Offer'}
+                       'Other'}
                     </Badge>
                   </td>
                   <td className="p-3">

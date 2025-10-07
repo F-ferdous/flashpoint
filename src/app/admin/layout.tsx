@@ -66,15 +66,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <ToastProvider>
-    <div className="min-h-[100dvh]">
+    <div className="min-h-[100dvh] relative overflow-hidden">
       {/* Global site header */}
       <Navbar />
+      {/* ambient brand glow */}
+      <div className="pointer-events-none absolute inset-0 opacity-[0.16] [mask-image:radial-gradient(80%_80%_at_50%_0%,black,transparent)]">
+        <div className="absolute -top-24 left-1/2 -translate-x-1/2 h-72 w-[52rem] rounded-full bg-[var(--brand)]/25 blur-3xl" />
+      </div>
       {/* Mobile top nav */}
       <header className="md:hidden sticky top-16 z-40 bg-[var(--background)]/80 backdrop-blur border-b border-black/10 dark:border-white/10">
         <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
           <Link href="/admin" className="font-semibold tracking-tight">
-            <span className="logo-flash">Flash</span>
-            <span style={{ color: "var(--brand)" }}>Point</span>
+            {t("common.brand_title")}
             <Badge className="ml-2" variant="secondary">{t("dash.common.admin_badge")}</Badge>
           </Link>
           <Link href="/" className="text-sm hover:opacity-80">{t("dash.common.back_to_site")}</Link>
@@ -168,7 +171,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </aside>
 
         {/* Content */}
-        <section className="min-h-[70vh] rounded-xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)] p-4 md:p-6">
+        <section className="min-h-[70vh] rounded-xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)]/80 dark:bg-white/5 p-4 md:p-6 glow-brand backdrop-blur-sm">
           {children}
         </section>
       </div>

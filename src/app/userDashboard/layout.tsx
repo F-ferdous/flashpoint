@@ -5,13 +5,13 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Gift, Wallet, Globe, Stethoscope, User } from "lucide-react";
+import { Gift, Wallet, Globe, User } from "lucide-react";
 import { ToastProvider, Toaster, useToast } from "@/components/ui/toast";
 import { useI18n } from "@/lib/i18n";
 
@@ -20,7 +20,6 @@ const navItems = [
   { href: "/userDashboard/referals", k: "dash.user.nav.referals", icon: Gift, tone: { bg: "bg-violet-500/15", text: "text-violet-600 dark:text-violet-300" } },
   { href: "/userDashboard/earn-online", k: "dash.user.nav.earn_online", icon: Globe, tone: { bg: "bg-sky-500/15", text: "text-sky-600 dark:text-sky-300" } },
   { href: "/userDashboard/wallet", k: "dash.user.nav.wallet", icon: Wallet, tone: { bg: "bg-amber-500/15", text: "text-amber-700 dark:text-amber-300" } },
-  { href: "/userDashboard/telemedicine", k: "dash.user.nav.telemedicine", icon: Stethoscope, tone: { bg: "bg-rose-500/15", text: "text-rose-600 dark:text-rose-300" } },
   { href: "/userDashboard/profile", k: "dash.user.nav.profile", icon: User, tone: { bg: "bg-blue-500/15", text: "text-blue-600 dark:text-blue-300" } },
 ];
 
@@ -29,6 +28,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(null);
+  const [customer, setCustomer] = useState<any | null>(null);
   const { t } = useI18n();
 
   useEffect(() => {
@@ -37,6 +37,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
       const ADMIN = "admin@fsalbd.com";
       const AGENT = "agent@fsalbd.com";
       if (!email || !user?.uid) {
+        setLoading(false);
         router.replace("/login");
         return;
       }
@@ -49,16 +50,25 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
         router.replace("/agentDashboard");
         return;
       }
-      // Otherwise check Firestore role
+      // Otherwise check the customers collection directly (no dependency on users collection)
       try {
-        const snap = await getDoc(doc(db, "users", user.uid));
-        const role = (snap.exists() ? (snap.data() as any)?.role : undefined) as string | undefined;
-        if (role === "user") {
+        const cDoc = await getDoc(doc(db, "customers", user.uid));
+        if (cDoc.exists()) {
+          const c = cDoc.data() as any;
+          const status = String((c?.status ?? "Active")).toLowerCase();
+          if (status !== "active") {
+            setLoading(false);
+            router.replace("/login");
+            return;
+          }
+          // subscribe to customer doc for name/id in sidebar
+          onSnapshot(doc(db, "customers", user.uid), (s) => setCustomer(s.exists() ? s.data() : null));
           setEmail(email);
           setLoading(false);
           return;
         }
       } catch {}
+      setLoading(false);
       router.replace("/login");
     });
     return () => unsub();
@@ -79,19 +89,22 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <ToastProvider>
-      <div className="min-h-[100dvh]">
+      <div className="min-h-[100dvh] relative overflow-hidden">
         <Navbar />
+        {/* ambient brand glow */}
+        <div className="pointer-events-none absolute inset-0 opacity-[0.16] [mask-image:radial-gradient(80%_80%_at_50%_0%,black,transparent)]">
+          <div className="absolute -top-24 left-1/2 -translate-x-1/2 h-72 w-[52rem] rounded-full bg-[var(--brand)]/25 blur-3xl" />
+        </div>
 
         {/* Mobile header */}
         <header className="md:hidden sticky top-0 z-40 bg-[var(--background)]/80 backdrop-blur border-b border-black/10 dark:border-white/10">
           <div className="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
             <Link href="/userDashboard" className="font-semibold tracking-tight">
-              <span className="logo-flash">Flash</span>
-              <span style={{ color: "var(--brand)" }}>Point</span>
+              {t("common.brand_title")}
               <Badge className="ml-2" variant="secondary">{t("dash.common.user_badge")}</Badge>
             </Link>
             <div className="flex items-center gap-3 text-xs sm:text-sm">
-              {email && <span className="text-foreground/80 truncate max-w-[10rem]" title={email}>{email}</span>}
+              {customer?.name && <span className="text-foreground/80 truncate max-w-[10rem]" title={customer?.name}>{customer?.name}</span>}
               <Link href="/" className="hover:opacity-80">{t("dash.common.back_to_site")}</Link>
             </div>
           </div>
@@ -145,10 +158,10 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
                   </g>
                 </svg>
               </div>
-              <div className="font-semibold leading-none">{t("dash.common.user_badge")}</div>
+              <div className="font-semibold leading-none">{customer?.name || t("dash.common.user_badge")}</div>
             </Link>
-            {email && (
-              <div className="mt-2 px-2 text-xs text-foreground/70 truncate" title={email}>{email}</div>
+            {customer?.customerId && (
+              <div className="mt-2 px-2 text-xs text-foreground/70 truncate" title={customer.customerId}>ID: {customer.customerId}</div>
             )}
             <Separator className="my-3" />
             <nav className="flex-1 overflow-auto">
@@ -181,7 +194,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
           </aside>
 
           {/* Content */}
-          <section className="min-h-[70vh] rounded-xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)] p-4 md:p-6">
+          <section className="min-h-[70vh] rounded-xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)]/80 dark:bg-white/5 p-4 md:p-6 glow-brand backdrop-blur-sm">
             {children}
           </section>
         </div>

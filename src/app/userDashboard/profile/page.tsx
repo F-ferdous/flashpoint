@@ -77,25 +77,18 @@ export default function UserProfilePage() {
             if (!uid) return;
             setSaving(true);
             try {
-              // Update auth profile
+              // Update only photoURL in auth profile
               await updateProfile(auth.currentUser!, {
-                displayName: displayName || undefined,
                 photoURL: photoURL || undefined,
               });
-              // Merge user doc
-              await setDoc(
-                doc(db, "users", uid),
-                {
-                  email,
-                  displayName,
-                  phone: phone || null,
-                  district: district || null,
-                  address: address || null,
-                  photoURL: photoURL || null,
-                  updatedAt: new Date(),
-                },
-                { merge: true }
-              );
+              // Merge limited fields in users and customers docs
+              const updates = {
+                address: address || null,
+                photoURL: photoURL || null,
+                updatedAt: new Date(),
+              } as any;
+              await setDoc(doc(db, "users", uid), updates, { merge: true });
+              await setDoc(doc(db, "customers", uid), { address: address || null, profilePhotoUrl: photoURL || null, updatedAt: new Date() }, { merge: true });
               toast({ title: t("dash.user.profile.updated"), variant: "success" });
             } catch (e) {
               toast({ title: t("dash.user.profile.update_failed"), variant: "destructive" });
@@ -172,20 +165,24 @@ export default function UserProfilePage() {
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-sm text-foreground/80">{t("dash.user.profile.name")}</label>
-              <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Jane Doe" className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm" />
+              <input value={displayName} disabled placeholder="Jane Doe" className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm" />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-sm text-foreground/80">{t("dash.user.profile.phone")}</label>
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+8801XXXXXXXXX" className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm" />
+              <input value={phone} disabled placeholder="+8801XXXXXXXXX" className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm" />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-sm text-foreground/80">{t("dash.user.profile.district")}</label>
-              <input value={district} onChange={(e) => setDistrict(e.target.value)} placeholder="Dhaka" className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm" />
+              <input value={district} disabled placeholder="Dhaka" className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm" />
             </div>
             <div className="sm:col-span-2 flex flex-col gap-1.5">
               <label className="text-sm text-foreground/80">{t("dash.user.profile.address")}</label>
               <textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={3} placeholder="House, Road, City, ZIP" className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm" />
             </div>
+          </div>
+
+          <div className="text-xs text-foreground/60">
+            For changing name, phone, district or other information, please contact an Agent or an Admin.
           </div>
 
           <div className="flex items-center gap-3">

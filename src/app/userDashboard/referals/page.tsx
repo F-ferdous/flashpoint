@@ -13,6 +13,7 @@ import {
   orderBy,
   limit,
   getDocs,
+  doc,
 } from "firebase/firestore";
 
 export default function ReferalsPage() {
@@ -27,11 +28,16 @@ export default function ReferalsPage() {
       const id = user?.uid || null;
       setUid(id);
       if (!id) return;
-      setRefLink(`${window.location.origin}/signup?ref=${id}`);
+      // subscribe to customers/{uid} for customerId
+      const unsubCustomer = onSnapshot(doc(db, "customers", id), (snap: any) => {
+        const customerId = (snap.exists() ? (snap.data() as any)?.customerId : null) as string | null;
+        const shortId = customerId && customerId.length > 0 ? customerId : id;
+        setRefLink(`${window.location.origin}/r/${shortId}`);
+      });
 
       // Live pending signups
       const qPending = query(
-        collection(db, "pendingUsers"),
+        collection(db, "pendingCustomers"),
         where("referrerUid", "==", id),
         where("status", "==", "Pending")
       );
@@ -53,6 +59,7 @@ export default function ReferalsPage() {
 
       return () => {
         unsubPending();
+        unsubCustomer();
       };
     });
     return () => unsub();

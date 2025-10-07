@@ -59,7 +59,7 @@ export default function EarningLandingPage() {
           </div>
           <h1 className="mt-4 text-3xl sm:text-4xl font-semibold tracking-tight">
             <span>{t("thirdParty.title")}</span>
-            <span className="bg-gradient-to-r from-fuchsia-400 via-rose-300 to-[var(--brand)] bg-clip-text text-transparent">{t("thirdParty.title_highlight")}</span>
+            <span className="bg-gradient-to-r from-emerald-400 via-emerald-300 to-emerald-600 bg-clip-text text-transparent">{t("thirdParty.title_highlight")}</span>
           </h1>
           <p className="mt-3 text-sm text-foreground/70">{t("thirdParty.subtitle")}</p>
 
@@ -112,18 +112,8 @@ export default function EarningLandingPage() {
               key={card.n}
               className="group relative rounded-2xl border p-5 sm:p-6 overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_60px_-20px_rgba(0,0,0,0.35)]"
               style={{
-                background:
-                  card.n === 1
-                    ? "var(--card-sky)"
-                    : card.n === 2
-                    ? "var(--card-rose)"
-                    : "var(--card-mint)",
-                borderColor:
-                  card.n === 1
-                    ? "var(--card-sky-border)"
-                    : card.n === 2
-                    ? "var(--card-rose-border)"
-                    : "var(--card-mint-border)",
+                background: card.n === 2 ? "var(--card-lime)" : "var(--card-mint)",
+                borderColor: card.n === 2 ? "var(--card-lime-border)" : "var(--card-mint-border)",
               }}
             >
               <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--brand)]/70 to-transparent" />
@@ -164,7 +154,7 @@ export default function EarningLandingPage() {
       <section ref={r3} className="mt-12 sm:mt-16 reveal">
         <div className="relative rounded-2xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)]/50 backdrop-blur-md overflow-hidden">
           {/* soft gradient wash */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[color:oklch(0.9_0.02_240)]/40 via-transparent to-[color:oklch(0.9_0.02_200)]/40" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[color:oklch(0.92_0.06_160)]/40 via-transparent to-[color:oklch(0.9_0.05_160)]/40" />
           <div className="relative p-6 sm:p-8 text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-15)] px-3 py-1 text-xs font-medium text-foreground ring-1 ring-[var(--brand-25)]">
               {t("coming.badge")}

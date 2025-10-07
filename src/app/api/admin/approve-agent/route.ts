@@ -5,38 +5,39 @@ import districtsData from "@/lib/districts.json";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const {
-      name,
-      email,
-      username,
-      password,
-      age,
-      nid,
-      trade,
-      address,
-      district,
-      bank,
-    } = body || {};
-
-    if (!email || !password || !username || !name) {
+    const { pendingId, password } = (body || {}) as { pendingId: string; password: string };
+    if (!pendingId || !password) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Enforce unique email in Firebase Auth
+    // Load pending agent
+    const pendingRef = adminDb.collection("pendingAgents").doc(pendingId);
+    const pendingSnap = await pendingRef.get();
+    if (!pendingSnap.exists) {
+      return NextResponse.json({ error: "Pending agent not found" }, { status: 404 });
+    }
+    const p = pendingSnap.data() as any;
+    const name: string = String(p.fullName || "");
+    const loginEmail: string = String(p.username || p.email || "");
+    const district: string | null = p.district || null;
+
+    if (!loginEmail || !name) {
+      return NextResponse.json({ error: "Pending record missing name or email" }, { status: 400 });
+    }
+
+    // Enforce unique email
     try {
-      const existing = await adminAuth.getUserByEmail(email);
+      const existing = await adminAuth.getUserByEmail(loginEmail);
       if (existing) {
         return NextResponse.json({ error: "Email address is already in use." }, { status: 409 });
       }
     } catch {}
-    // Create Auth user
-    const userRecord = await adminAuth.createUser({
-      email,
-      password,
-      displayName: name,
-    });
 
-    // Build agent ID: <districtId><A><first2Upper><serial3>
+    // Create Auth user
+    const created = await adminAuth.createUser({ email: loginEmail, password, displayName: name });
+    const uid = created.uid;
+
+    // Build agent ID
     function getDistrictIdByName(name: string | null | undefined): string {
       const arr = (districtsData as any)?.districts as Array<{ id: string; name: string }>;
       if (!name || !arr) return "00";
@@ -54,33 +55,46 @@ export async function POST(req: NextRequest) {
       return `${distId}A${initials}${String(next).padStart(3, "0")}`;
     });
 
-    // Save agent doc with immutable agentId
+    // Create Firestore docs
     const agentDoc = {
-      uid: userRecord.uid,
+      uid,
       agentId,
       name,
-      email,
-      username,
+      email: loginEmail,
+      username: loginEmail,
       // WARNING: Storing plaintext password is insecure. Proceeded per product request.
       password,
-      role: "Agent" as const,
       status: "Active" as const,
-      age: age ?? null,
-      nid: nid ?? null,
-      trade: trade ?? null,
-      address: address ?? null,
-      district: district ?? null,
-      bank: bank ?? null,
+      age: null,
+      nid: p.nidNumber || null,
+      trade: p.trade || null,
+      address: p.address || null,
+      district: district,
+      bank: null,
+      nidPhotoUrl: null,
+      tradePhotoUrl: null,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
 
-    await adminDb.collection("agents").doc(userRecord.uid).set(agentDoc);
+    await adminDb.collection("agents").doc(uid).set(agentDoc, { merge: true });
+    await adminDb.collection("users").doc(uid).set({
+      role: "agent",
+      email: loginEmail,
+      name,
+      username: loginEmail,
+      // WARNING: Storing plaintext password is insecure. Proceeded per product request.
+      password,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    }, { merge: true });
 
+    // Remove pending record
+    await pendingRef.delete();
 
-    return NextResponse.json({ ok: true, uid: userRecord.uid, agentId });
+    return NextResponse.json({ ok: true, uid, agentId });
   } catch (err: any) {
-    console.error("create-agent error", err);
+    console.error("approve-agent error", err);
     return NextResponse.json({ error: err?.message || "Internal error" }, { status: 500 });
   }
 }

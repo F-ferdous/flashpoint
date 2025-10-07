@@ -5,7 +5,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+  limit,
+} from "firebase/firestore";
 import { useI18n } from "@/lib/i18n";
 
 export default function LoginPage() {
@@ -19,7 +27,7 @@ export default function LoginPage() {
     setSubmitting(true);
     setError(null);
     const form = new FormData(e.currentTarget);
-    const email = String(form.get("email") || "").trim();
+    let email = String(form.get("email") || "").trim();
     const password = String(form.get("password") || "");
 
     if (!email || !password) {
@@ -29,6 +37,20 @@ export default function LoginPage() {
     }
 
     try {
+      // If user typed a username (no @), resolve to email from agents collection
+      if (email && !email.includes("@")) {
+        try {
+          const q = query(
+            collection(db, "agents"),
+            where("username", "==", email),
+            limit(1)
+          );
+          const snap = await getDocs(q);
+          const doc0 = snap.docs[0];
+          const e = (doc0?.data() as any)?.email as string | undefined;
+          if (e) email = e;
+        } catch {}
+      }
       await signInWithEmailAndPassword(auth, email, password);
       // Redirect after successful login based on role/email
       const u = auth.currentUser;
@@ -42,15 +64,39 @@ export default function LoginPage() {
         router.push("/agentDashboard");
         return;
       }
-      // Otherwise, check Firestore role for this uid
+      // Otherwise, check role from Firestore
       const uid = u?.uid;
       if (uid) {
+        // 1) Agent role -> agentDashboard
         try {
-          const snap = await getDoc(doc(db, "users", uid));
-          const role = (snap.exists() ? (snap.data() as any)?.role : undefined) as string | undefined;
-          if (role === "user") {
-            router.push("/userDashboard");
-            return;
+          const aSnap = await getDoc(doc(db, "agents", uid));
+          if (aSnap.exists()) {
+            const aData = aSnap.data() as any;
+            const aRole = (aData?.role as string | undefined)
+              ?.toString()
+              .toLowerCase();
+            if (aRole === "agent") {
+              router.push("/agentDashboard");
+              return;
+            }
+          }
+        } catch {}
+
+        // 2) Customer role -> userDashboard
+        try {
+          const cSnap = await getDoc(doc(db, "customers", uid));
+          if (cSnap.exists()) {
+            const cData = cSnap.data() as any;
+            const cRole = (cData?.role as string | undefined)
+              ?.toString()
+              .toLowerCase();
+            const cStatus =
+              (cData?.status as string | undefined)?.toString().toLowerCase() ||
+              "active";
+            if (cRole === "Customer" && cStatus === "Active") {
+              router.push("/userDashboard");
+              return;
+            }
           }
         } catch {}
       }
@@ -97,23 +143,52 @@ export default function LoginPage() {
               {t("login.badge")}
             </p>
             <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold tracking-tight">
-              {t("login.heading")}<span className="logo-flash">Flash</span>
-              <span style={{ color: "var(--brand)" }}>Point</span>
+              {t("login.heading")}
+              <>{t("common.brand_title")}</>
             </h1>
             <p className="mt-2 text-sm text-foreground/70">{t("login.sub")}</p>
           </div>
 
-          <form onSubmit={onSubmit} className="space-y-5 rounded-2xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)] p-5 sm:p-6 glow-brand">
+          <form
+            onSubmit={onSubmit}
+            className="space-y-5 rounded-2xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)] p-5 sm:p-6 glow-brand"
+          >
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="email" className="text-sm text-foreground/80">{t("login.email_label")}</label>
-              <input id="email" name="email" type="email" required placeholder={t("login.email_placeholder")} className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
+              <label htmlFor="email" className="text-sm text-foreground/80">
+                {t("login.email_label")}
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                placeholder={t("login.email_placeholder")}
+                className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]"
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <label htmlFor="password" className="text-sm text-foreground/80">{t("login.pass_label")}</label>
-                <Link href="#" className="text-xs text-foreground/70 hover:text-[var(--brand)] underline">{t("login.forgot")}</Link>
+                <label
+                  htmlFor="password"
+                  className="text-sm text-foreground/80"
+                >
+                  {t("login.pass_label")}
+                </label>
+                <Link
+                  href="#"
+                  className="text-xs text-foreground/70 hover:text-[var(--brand)] underline"
+                >
+                  {t("login.forgot")}
+                </Link>
               </div>
-              <input id="password" name="password" type="password" required placeholder={t("login.pass_placeholder")} className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                placeholder={t("login.pass_placeholder")}
+                className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]"
+              />
             </div>
 
             {error && (
@@ -122,10 +197,25 @@ export default function LoginPage() {
               </div>
             )}
 
-            <button disabled={submitting} type="submit" className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--brand)] text-black px-4 py-2.5 text-sm font-semibold shadow-sm hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--brand)] focus:ring-offset-[var(--background-solid)] disabled:opacity-70">
+            <button
+              disabled={submitting}
+              type="submit"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--brand)] text-black px-4 py-2.5 text-sm font-semibold shadow-sm hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--brand)] focus:ring-offset-[var(--background-solid)] disabled:opacity-70"
+            >
               {submitting ? (
                 <>
-                  <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <svg
+                    className="animate-spin"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden
+                  >
                     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                   </svg>
                   {t("login.submitting")}
@@ -136,7 +226,13 @@ export default function LoginPage() {
             </button>
 
             <p className="text-center text-sm text-foreground/70">
-              {t("login.new_here")} <Link href="/signup" className="underline hover:text-[var(--brand)]">{t("login.create_account")}</Link>
+              {t("login.new_here")}{" "}
+              <Link
+                href="/signup"
+                className="underline hover:text-[var(--brand)]"
+              >
+                {t("login.create_account")}
+              </Link>
             </p>
           </form>
         </div>

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
+import districtsData from "@/lib/districts.json";
 import { db } from "@/lib/firebase";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useI18n } from "@/lib/i18n";
@@ -18,16 +18,13 @@ export default function SignupPage() {
 
 function SignupForm() {
   const { t } = useI18n();
+  const DISTRICTS: string[] = ((districtsData as any).districts || []).map((d: { name: string }) => d.name);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const search = useSearchParams();
-  const ref = search.get("ref") || "";
-  const hasRef = useMemo(() => Boolean(ref && ref.trim().length > 0), [ref]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSubmitting(true);
-    if (!hasRef) return;
     try {
       const form = new FormData(e.currentTarget);
       const entries = Object.fromEntries(form.entries());
@@ -38,8 +35,8 @@ function SignupForm() {
       const payload: any = entries;
       // Build pending user doc
       const docData = {
-        referrerUid: String(ref),
         fullName: String(payload.fullName || ""),
+        username: payload.username ? String(payload.username) : null,
         email: String(payload.email || "").toLowerCase(),
         phone: payload.phone ? String(payload.phone) : null,
         nidNumber: payload.nidNumber ? String(payload.nidNumber) : null,
@@ -49,7 +46,7 @@ function SignupForm() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
-      await addDoc(collection(db, "pendingUsers"), docData);
+      await addDoc(collection(db, "pendingCustomers"), docData);
       setSubmitted(true);
     } catch (err) {
       // Fail silently in UI; could add a toast if desired
@@ -73,25 +70,20 @@ function SignupForm() {
               {t("signup.badge")}
             </p>
             <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold tracking-tight">
-              {t("signup.heading")}<span className="logo-flash">Flash</span>
-              <span style={{ color: "var(--brand)" }}>Point</span>
+              {t("signup.heading")}<>{t("common.brand_title")}</>
             </h1>
             <p className="mt-2 text-sm text-foreground/70">{t("signup.sub")}</p>
           </div>
 
           <form onSubmit={onSubmit} className="space-y-5 rounded-2xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)] p-5 sm:p-6 glow-brand">
-            {hasRef && (
-              <input type="hidden" name="ref" value={ref} />
-            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {!hasRef && (
-                <div className="sm:col-span-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
-                  {t("signup.need_referral")}
-                </div>
-              )}
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="fullName" className="text-sm text-foreground/80">{t("signup.full_name")}</label>
                 <input id="fullName" name="fullName" required placeholder={t("signup.full_name_ph")} className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="username" className="text-sm text-foreground/80">Username (will be used as your login email)</label>
+                <input id="username" name="username" type="email" required placeholder="yourname@example.com" className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]" />
               </div>
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="email" className="text-sm text-foreground/80">{t("signup.email")}</label>
@@ -105,14 +97,9 @@ function SignupForm() {
                 <label htmlFor="district" className="text-sm text-foreground/80">{t("signup.district")}</label>
                 <select id="district" name="district" required className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]">
                   <option value="" disabled>{t("signup.district_select")}</option>
-                  <option>{t("signup.districts.dhaka")}</option>
-                  <option>{t("signup.districts.chattogram")}</option>
-                  <option>{t("signup.districts.rajshahi")}</option>
-                  <option>{t("signup.districts.khulna")}</option>
-                  <option>{t("signup.districts.barishal")}</option>
-                  <option>{t("signup.districts.sylhet")}</option>
-                  <option>{t("signup.districts.rangpur")}</option>
-                  <option>{t("signup.districts.mymensingh")}</option>
+                  {DISTRICTS.map((d: string) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
                 </select>
               </div>
               <div className="flex flex-col gap-1.5">
@@ -132,7 +119,7 @@ function SignupForm() {
 
             <div className="flex items-center justify-between pt-2">
               <p className="text-xs text-foreground/60">{t("signup.terms")}<Link href="#" className="underline hover:text-[var(--brand)]">{t("signup.terms_terms")}</Link> {t("common.and", { /* fallback if needed */ }) || "and"} <Link href="#" className="underline hover:text-[var(--brand)]">{t("signup.terms_privacy")}</Link>.</p>
-              <button disabled={submitting || !hasRef} type="submit" className="inline-flex items-center gap-2 rounded-lg bg-[var(--brand)] text-black px-4 py-2.5 text-sm font-semibold shadow-sm hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--brand)] focus:ring-offset-[var(--background-solid)] disabled:opacity-70">
+              <button disabled={submitting} type="submit" className="inline-flex items-center gap-2 rounded-lg bg-[var(--brand)] text-black px-4 py-2.5 text-sm font-semibold shadow-sm hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--brand)] focus:ring-offset-[var(--background-solid)] disabled:opacity-70">
                 {submitting ? (
                   <>
                     <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -148,7 +135,7 @@ function SignupForm() {
 
             {submitted && (
               <div className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-700 dark:text-emerald-200">
-                {t("signup.thanks")}
+                An Agent or Admin will Confirm.
               </div>
             )}
           </form>
