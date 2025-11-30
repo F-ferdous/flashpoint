@@ -1,99 +1,127 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { useEffect, useState } from "react";
-import { auth } from "@/lib/firebase";
+import Image from "next/image";
 
 export default function EarnOnlinePage() {
-  const [url, setUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-    async function load() {
-      try {
-        const uid = auth.currentUser?.uid;
-        if (!uid) throw new Error("Not signed in");
-        const res = await fetch(`/api/adgate-url?uid=${encodeURIComponent(uid)}`);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.error || "Failed to get URL");
-        if (mounted) setUrl(data.url);
-      } catch (e: any) {
-        if (mounted) setError(e?.message || "Failed to load offerwall");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    }
-    load();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
   return (
-    <div className="space-y-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Earn online</h1>
-          <p className="text-sm text-foreground/70">Discover online tasks to earn more.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" onClick={() => window.location.reload()}>Refresh</Button>
-          <Button size="sm" variant="outline">How it works</Button>
-        </div>
-      </header>
+    <div className="min-h-[60vh] p-6">
+      <div className="mb-4">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+          সুখবর! সুখবর! এখন ঘরে বসেই আয় করুন FSA Rewards অ্যাপ দিয়ে!
+        </h1>
+      </div>
+      <p className="text-foreground/80">
+        মোবাইল দিয়ে ছোট ছোট কাজ করে হাতখরচ চালাতে চান? নিয়ে এলাম সম্পূর্ণ নতুন
+        FSA Rewards অ্যাপ! ডিসেম্বর ২০২৫ পর্যন্ত ফ্রি রেজিষ্ট্রেশন সুযোগ!
+      </p>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <TaskCard label="Active Tasks" value="3" trend="+1" />
-        <TaskCard label="Completed" value="14" trend="+2" />
-        <TaskCard label="Earnings from Tasks" value="$ 120" trend="+$12" />
-      </section>
+      <div className="mt-6">
+        <p className="font-semibold text-emerald-600 dark:text-emerald-300">
+          কী কী কাজ করে আয় করবেন?
+        </p>
+        <ul className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-y-1 list-disc list-inside text-foreground/80">
+          <li>অ্যাড এবং ভিডিও দেখে</li>
+          <li>যোগ অংক সমাধান করে</li>
+          <li>গেম খেলে</li>
+          <li>লাকি স্পিন করে</li>
+          <li>ওয়েবসাইট ও ব্লগসাইট ভিজিট করে</li>
+          <li>স্ক্র্যাচ করে</li>
+          <li>বন্ধুদের রেফার করে বড় বোনাস</li>
+          <li>ছোট ছোট টাস্ক কমপ্লিট করে</li>
+          <li>সার্ভে করে</li>
+        </ul>
+      </div>
 
-      <section className="rounded-xl border border-black/10 dark:border-white/10 bg-[var(--surface)]/60 dark:bg-white/5">
-        <div className="p-4 flex items-center justify-between">
-          <h2 className="text-base font-semibold">OfferWall</h2>
-          <Badge variant="outline">Secure</Badge>
+      <div className="mt-6 space-y-2 text-foreground/90">
+        <p>
+          💰 পেমেন্ট মেথড: নির্দিষ্ট পয়েন্ট হলেই টাকা তুলুন সরাসরি বিকাশ, নগদ বা
+          রকেটে।
+        </p>
+        <p>📲 এখনই ডাউনলোড করুন:</p>
+      </div>
+
+      <div className="mt-4">
+        <a
+          href="https://fsarewards.xyz/fsarewards.apk"
+          target="_blank"
+          rel="noreferrer"
+          className="w-full inline-flex items-center justify-center rounded-md border border-black/10 dark:border-white/10 bg-[var(--brand)] text-black px-4 py-2 text-sm font-medium hover:brightness-110"
+        >
+          অ্যাপ ডাউনলোড করুন
+        </a>
+      </div>
+
+      <p className="mt-6 text-sm text-foreground/70">
+        যেকোনো সাপোর্টের জন্য জয়েন করুন আমাদের টেলিগ্রাম ও হোয়াটসএপ গ্রুপে।
+      </p>
+
+      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <a
+          href="https://chat.whatsapp.com/JikKABk8kaeL1FrCFmfnuZ?mode=hqrt2"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center justify-center rounded-md border border-black/10 dark:border-white/10 bg-[var(--surface)] px-4 py-2 text-sm font-medium hover:bg-[var(--surface)]/80"
+        >
+          WhatsApp গ্রুপ
+        </a>
+        <a
+          href="https://t.me/+dSedQpifwWU3NWE9"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center justify-center rounded-md border border-black/10 dark:border-white/10 bg-[var(--surface)] px-4 py-2 text-sm font-medium hover:bg-[var(--surface)]/80"
+        >
+          Telegram গ্রুপ
+        </a>
+        <a
+          href="https://www.facebook.com/share/1BrzwLf2gW/"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center justify-center rounded-md border border-black/10 dark:border-white/10 bg-[var(--surface)] px-4 py-2 text-sm font-medium hover:bg-[var(--surface)]/80"
+        >
+          Facebook পেজ
+        </a>
+      </div>
+
+      <div className="mt-10">
+        <p className="font-semibold text-emerald-600 dark:text-emerald-300">
+          ভিডিওতে দেখুন কিভাবে কাজ করবেন
+        </p>
+        <div className="mt-4 relative w-full h-0 pb-[56.25%] overflow-hidden rounded-lg border border-black/10 dark:border-white/10 bg-[var(--surface-2)]">
+          <iframe
+            className="absolute inset-0 w-full h-full"
+            src="https://www.youtube.com/embed/LSDKLMzyNnU"
+            title="FSA Rewards Tutorial"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          ></iframe>
         </div>
-        <Separator />
-        <div className="p-4">
-          {loading && (
-            <div className="text-sm text-foreground/70 flex items-center gap-2">
-              <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-              </svg>
-              Loading OfferWall...
+      </div>
+
+      <div className="mt-10">
+        <p className="font-semibold text-emerald-600 dark:text-emerald-300">
+          অ্যাপে আয়ের ধাপসমূহ
+        </p>
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+            <div
+              key={n}
+              className="overflow-hidden rounded-lg border border-black/10 dark:border-white/10 bg-[var(--surface-2)]"
+            >
+              <Image
+                src={`/assets/images/appwork/${n}.jpeg`}
+                alt={`ধাপ ${n}`}
+                width={800}
+                height={1600}
+                className="w-full h-auto object-cover"
+              />
+              <div className="px-3 py-2 text-sm text-foreground/80">
+                ধাপ {n}
+              </div>
             </div>
-          )}
-          {error && (
-            <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-700 dark:text-rose-200">
-              {error}
-            </div>
-          )}
-          {url && (
-            <iframe
-              src={url}
-              width="100%"
-              height={700}
-              frameBorder={0}
-              className="rounded-lg bg-white"
-            />
-          )}
+          ))}
         </div>
-      </section>
-    </div>
-  );
-}
-
-function TaskCard({ label, value, trend }: { label: string; value: string; trend: string }) {
-  const positive = trend.startsWith("+") || trend.startsWith("$");
-  return (
-    <div className="rounded-xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)] p-4">
-      <div className="text-sm text-foreground/70">{label}</div>
-      <div className="mt-1 text-2xl font-semibold tracking-tight">{value}</div>
-      <div className={`mt-1 text-xs ${positive ? "text-emerald-600 dark:text-emerald-300" : "text-rose-600 dark:text-rose-300"}`}>{trend} this week</div>
+      </div>
     </div>
   );
 }

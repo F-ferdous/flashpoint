@@ -3,18 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
-import {
-  doc,
-  getDoc,
-  collection,
-  getDocs,
-  query,
-  where,
-  limit,
-} from "firebase/firestore";
 import { useI18n } from "@/lib/i18n";
+import { auth } from "@/lib/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
@@ -37,92 +30,43 @@ export default function LoginPage() {
     }
 
     try {
-      // If user typed a username (no @), resolve to email from agents collection
-      if (email && !email.includes("@")) {
-        try {
-          const q = query(
-            collection(db, "agents"),
-            where("username", "==", email),
-            limit(1)
-          );
-          const snap = await getDocs(q);
-          const doc0 = snap.docs[0];
-          const e = (doc0?.data() as any)?.email as string | undefined;
-          if (e) email = e;
-        } catch {}
-      }
-      await signInWithEmailAndPassword(auth, email, password);
-      // Redirect after successful login based on role/email
-      const u = auth.currentUser;
-      const em = u?.email?.toLowerCase();
-      // Admin/Agent by explicit email
-      if (em === "admin@fsalbd.com") {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const em = (cred.user.email || "").toLowerCase();
+      const uid = cred.user.uid;
+
+      // Admin override
+      if (em === "admin@gesaflash.com") {
         router.push("/admin");
         return;
       }
-      if (em === "agent@fsalbd.com") {
-        router.push("/agentDashboard");
-        return;
-      }
-      // Otherwise, check role from Firestore
-      const uid = u?.uid;
-      if (uid) {
-        // 1) Agent role -> agentDashboard
-        try {
-          const aSnap = await getDoc(doc(db, "agents", uid));
-          if (aSnap.exists()) {
-            const aData = aSnap.data() as any;
-            const aRole = (aData?.role as string | undefined)
-              ?.toString()
-              .toLowerCase();
-            if (aRole === "agent") {
-              router.push("/agentDashboard");
-              return;
-            }
-          }
-        } catch {}
 
-        // 2) Customer role -> userDashboard
-        try {
-          const cSnap = await getDoc(doc(db, "customers", uid));
-          if (cSnap.exists()) {
-            const cData = cSnap.data() as any;
-            const cRole = (cData?.role as string | undefined)
-              ?.toString()
-              .toLowerCase();
-            const cStatus =
-              (cData?.status as string | undefined)?.toString().toLowerCase() ||
-              "active";
-            if (cRole === "Customer" && cStatus === "Active") {
-              router.push("/userDashboard");
-              return;
-            }
+      // Check role from Firestore
+      try {
+        const custSnap = await getDoc(doc(db, "Customers", uid));
+        if (custSnap.exists()) {
+          const role = String((custSnap.data() as any)?.Role || "");
+          if (role.toLowerCase() === "customer") {
+            router.push("/userDashboard");
+            return;
           }
-        } catch {}
-      }
+        }
+      } catch {}
+
+      try {
+        const agentSnap = await getDoc(doc(db, "Agents", uid));
+        if (agentSnap.exists()) {
+          const role = String((agentSnap.data() as any)?.Role || "");
+          if (role.toLowerCase() === "agent") {
+            router.push("/agentDashboard");
+            return;
+          }
+        }
+      } catch {}
+
       // Fallback
-      router.push("/");
-    } catch (err: any) {
-      let message = t("login.err_default");
-      const code = err?.code as string | undefined;
-      switch (code) {
-        case "auth/invalid-credential":
-        case "auth/invalid-login-credentials":
-        case "auth/wrong-password":
-        case "auth/user-not-found":
-          message = t("login.err_invalid");
-          break;
-        case "auth/too-many-requests":
-          message = t("login.err_rate_limited");
-          break;
-        case "auth/network-request-failed":
-          message = t("login.err_network");
-          break;
-        case "auth/invalid-email":
-          message = t("login.err_invalid_email");
-          break;
-      }
-      setError(message);
+      router.push("/userDashboard");
+    } catch (e: any) {
+      setError(e?.message || t("login.err_default"));
     } finally {
       setSubmitting(false);
     }
@@ -164,6 +108,7 @@ export default function LoginPage() {
                 required
                 placeholder={t("login.email_placeholder")}
                 className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]"
+                suppressHydrationWarning
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -188,6 +133,7 @@ export default function LoginPage() {
                 required
                 placeholder={t("login.pass_placeholder")}
                 className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]"
+                suppressHydrationWarning
               />
             </div>
 

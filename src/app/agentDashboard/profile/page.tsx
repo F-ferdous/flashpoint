@@ -40,7 +40,7 @@ export default function AgentProfilePage() {
 
   useEffect(() => {
     if (!uid) return;
-    const unsub = onSnapshot(doc(db, "agents", uid), (snap) => {
+    const unsub = onSnapshot(doc(db, "Agents", uid), (snap) => {
       const data = snap.data() as any;
       const a: Agent = { uid, ...(data || {}) };
       setAgent(a);
@@ -54,17 +54,11 @@ export default function AgentProfilePage() {
     try {
       setSaving(true);
       const payload: any = {
-        name: form.name ?? null,
-        username: form.username ?? null,
         age: form.age ?? null,
-        nid: form.nid ?? null,
-        trade: form.trade ?? null,
         address: form.address ?? null,
-        district: form.district ?? null,
-        bank: form.bank ?? null,
         updatedAt: Date.now(),
       };
-      await updateDoc(doc(db, "agents", uid), payload);
+      await updateDoc(doc(db, "Agents", uid), payload);
       toast({ title: "Profile updated", variant: "success" });
       setEditing(false);
     } catch (e: any) {
@@ -99,10 +93,11 @@ export default function AgentProfilePage() {
           <div className="rounded-lg bg-[var(--surface-2)] p-4 border border-black/10 dark:border-white/10">
             <div className="text-base font-semibold">Identity</div>
             <Separator className="my-3" />
-            <Field label="Name" editing={editing} value={form.name} onChange={(v) => setForm((s) => ({ ...s, name: v }))} />
+            <Field label="Name" value={(agent as any)?.fullName ?? agent?.name} readOnly />
             <Field label="Email" value={agent?.email} readOnly />
-            <Field label="Username" editing={editing} value={form.username} onChange={(v) => setForm((s) => ({ ...s, username: v }))} />
+            <Field label="Agent ID" value={(agent as any)?.AgentID ?? (agent as any)?.agentId} readOnly />
             <Field label="Status" value={agent?.status} readOnly />
+            <div className="mt-2 text-xs text-foreground/60">For changes other than Address and Age, please contact Admin.</div>
           </div>
 
           {/* Right: Personal & Banking */}
@@ -110,11 +105,11 @@ export default function AgentProfilePage() {
             <div className="text-base font-semibold">Personal & Banking</div>
             <Separator className="my-3" />
             <Field label="Age" editing={editing} value={form.age?.toString()} onChange={(v) => setForm((s) => ({ ...s, age: v ? Number(v) : null }))} type="number" />
-            <Field label="NID" editing={editing} value={form.nid} onChange={(v) => setForm((s) => ({ ...s, nid: v }))} />
-            <Field label="Trade" editing={editing} value={form.trade} onChange={(v) => setForm((s) => ({ ...s, trade: v }))} />
-            <Field label="District" editing={editing} value={form.district} onChange={(v) => setForm((s) => ({ ...s, district: v }))} />
+            <Field label="NID" value={(agent as any)?.nidNumber ?? agent?.nid} readOnly />
+            <Field label="Trade" value={agent?.trade} readOnly />
+            <Field label="District" value={agent?.district} readOnly />
             <Field label="Address" editing={editing} value={form.address} onChange={(v) => setForm((s) => ({ ...s, address: v }))} />
-            <Field label="Bank" editing={editing} value={form.bank} onChange={(v) => setForm((s) => ({ ...s, bank: v }))} />
+            <Field label="Bank" value={agent?.bank} readOnly />
           </div>
         </div>
       </section>

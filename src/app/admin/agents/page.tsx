@@ -6,10 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/toast";
-import { db, storage } from "@/lib/firebase";
 import districtsData from "@/lib/districts.json";
-import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { db, storage, auth, app } from "@/lib/firebase";
+import { collection, onSnapshot, doc, runTransaction, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { Search } from "lucide-react";
+import { getApps, initializeApp, deleteApp } from "firebase/app";
+import { getAuth, createUserWithEmailAndPassword, signOut } from "firebase/auth";
 
 const DISTRICTS =
   (districtsData as any).districts?.map((d: any) => d.name) ?? [];
@@ -20,6 +23,7 @@ export default function AgentsPage() {
     agentId?: string | null;
     name: string;
     email: string;
+    phone?: string | null;
     status: "Active" | "Pending" | "Blocked" | "Frozen";
     age?: number;
     nid?: string;
@@ -35,46 +39,66 @@ export default function AgentsPage() {
 
   const [open, setOpen] = useState(false);
   const [agents, setAgents] = useState<Agent[]>([]);
+  const [searchText, setSearchText] = useState("");
+  const [searchBy, setSearchBy] = useState<"name" | "phone" | "agentId">("name");
   const [view, setView] = useState<Agent | null>(null);
   const [savingView, setSavingView] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
   const { toast } = useToast();
 
-  // Live load agents from Firestore
+  // Live list from Firestore Agents
   useEffect(() => {
-    const q = query(collection(db, "agents"), orderBy("updatedAt", "desc"));
-    const unsub = onSnapshot(q, (snap) => {
-      const rows: Agent[] = snap.docs.map((d) => {
-        const x = d.data() as any;
-        return {
-          id: d.id,
-          agentId: x.agentId ?? null,
-          name: String(x.name || "Unnamed"),
-          email: String(x.email || ""),
-          status: (x.status as Agent["status"]) || "Active",
-          age: x.age ?? undefined,
-          nid: x.nid ?? undefined,
-          trade: x.trade ?? undefined,
-          address: x.address ?? undefined,
-          district: x.district ?? undefined,
-          bank: x.bank ?? undefined,
-          statusReason: x.statusReason ?? undefined,
-          nidPhotoUrl: x.nidPhotoUrl ?? undefined,
-          tradePhotoUrl: x.tradePhotoUrl ?? undefined,
-          password: x.password ?? undefined,
-        };
-      });
-      setAgents(rows);
+    const unsub = onSnapshot(collection(db, "Agents"), (snap) => {
+      setAgents(
+        snap.docs.map((d) => {
+          const x = d.data() as any;
+          return {
+            id: d.id,
+            agentId: x.AgentID ?? null,
+            name: String(x.fullName || x.name || "Unnamed"),
+            email: String(x.email || ""),
+            phone: x.phone || x.phoneNumber || null,
+            status: (x.status as Agent["status"]) || "Active",
+            age: x.age ?? undefined,
+            nid: x.nidNumber ?? x.nid ?? undefined,
+            trade: x.trade ?? undefined,
+            address: x.address ?? undefined,
+            district: x.district ?? undefined,
+            bank: x.bank ?? undefined,
+            statusReason: x.statusReason ?? undefined,
+            nidPhotoUrl: x.nidPhotoUrl ?? undefined,
+            tradePhotoUrl: x.tradePhotoUrl ?? undefined,
+            password: x.password ?? undefined,
+          };
+        })
+      );
     });
     return () => unsub();
   }, []);
+
+  const filteredAgents = useMemo(() => {
+    const q = searchText.trim();
+    if (!q) return agents;
+    const qLower = q.toLowerCase();
+    const qDigits = q.replace(/\D+/g, "");
+    return agents.filter((a) => {
+      if (searchBy === "name") {
+        return (a.name || "").toLowerCase().includes(qLower);
+      }
+      if (searchBy === "agentId") {
+        return (a.agentId || "").toUpperCase().includes(q.toUpperCase());
+      }
+      // phone
+      const phone = (a.phone || "").replace(/\D+/g, "");
+      return qDigits.length > 0 && phone.includes(qDigits);
+    });
+  }, [agents, searchText, searchBy]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const name = String(form.get("name") || "");
     const email = String(form.get("email") || "");
-    const username = String(form.get("username") || "");
     const password = String(form.get("password") || "");
     const age = Number(form.get("age") || 0);
     const nid = String(form.get("nid") || "");
@@ -84,26 +108,79 @@ export default function AgentsPage() {
     const bank = String(form.get("bank") || "");
 
     try {
-      const res = await fetch("/api/admin/create-agent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email,
-          username,
-          password,
-          age,
-          nid,
-          trade,
-          address,
-          district,
-          bank,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "Failed to create agent");
+      // 1) Create Auth user with secondary app to preserve admin session
+      if (!email || !password) {
+        throw new Error("Email and password are required");
+      }
+      const secondary = getApps().find(a => a.name === 'secondary') || initializeApp((app.options as any), 'secondary');
+      const secAuth = getAuth(secondary);
+      const cred = await createUserWithEmailAndPassword(secAuth, email, password);
+      const uid = cred.user.uid;
 
-      const id = data.uid as string;
+      // 2) Compute AgentID as A + 6-digit global sequence (A000001, A000002, ...)
+      const counterRef = doc(collection(db, 'counters'), 'agent_serial');
+      const AgentID = await runTransaction(db, async (tx) => {
+        const snap = await tx.get(counterRef);
+        const current = (snap.exists() ? (snap.data() as any)?.seq : 0) || 0;
+        const next = current + 1;
+        tx.set(
+          counterRef,
+          { seq: next, type: 'agent', updatedAt: Date.now() },
+          { merge: true }
+        );
+        return `A${String(next).padStart(6, '0')}`;
+      });
+
+      // Pre-create doc id (use uid to align record with auth user)
+      const agentDocRef = doc(collection(db, 'Agents'), uid);
+      const docId = agentDocRef.id;
+
+      // Optional uploads
+      let nidPhotoUrl: string | null = null;
+      const nidFile = form.get('nidPhoto') as File | null;
+      if (nidFile && nidFile.size > 0) {
+        const r = ref(storage, `agents/${docId}/nid-${Date.now()}-${nidFile.name}`);
+        await uploadBytes(r, nidFile);
+        nidPhotoUrl = await getDownloadURL(r);
+      }
+      let tradePhotoUrl: string | null = null;
+      const tradeFile = form.get('tradePhoto') as File | null;
+      if (tradeFile && tradeFile.size > 0) {
+        const r2 = ref(storage, `agents/${docId}/trade-${Date.now()}-${tradeFile.name}`);
+        await uploadBytes(r2, tradeFile);
+        tradePhotoUrl = await getDownloadURL(r2);
+      }
+
+      const adminEmail = auth.currentUser?.email || "Admin Email";
+
+      const agentDoc = {
+        uid,
+        fullName: name,
+        email,
+        age: age || null,
+        nidNumber: nid || null,
+        trade: trade || null,
+        address: address || null,
+        district: district || null,
+        bank: bank || null,
+        password: password || null,
+        AgentID,
+        Role: "Agent",
+        status: "Active",
+        adminEmail: adminEmail,
+        nidPhotoUrl,
+        tradePhotoUrl,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+
+      await setDoc(agentDocRef, agentDoc, { merge: true });
+
+      // Cleanup secondary auth session
+      await signOut(secAuth).catch(() => {});
+      if (secondary.name === 'secondary') {
+        deleteApp(secondary as any).catch(() => {});
+      }
 
       setOpen(false);
       toast({ title: "Agent created", variant: "success" });
@@ -140,31 +217,9 @@ export default function AgentsPage() {
         updates.password = newPwd;
       }
 
-      // Optional uploads
-      const nidFile = form.get("nidPhoto") as File | null;
-      if (nidFile && nidFile.size > 0) {
-        const r = ref(storage, `agents/${view.id}/nid-${Date.now()}`);
-        await uploadBytes(r, nidFile);
-        updates.nidPhotoUrl = await getDownloadURL(r);
-      }
-      const tradeFile = form.get("tradePhoto") as File | null;
-      if (tradeFile && tradeFile.size > 0) {
-        const r2 = ref(storage, `agents/${view.id}/trade-${Date.now()}`);
-        await uploadBytes(r2, tradeFile);
-        updates.tradePhotoUrl = await getDownloadURL(r2);
-      }
-
-      const resp = await fetch("/api/admin/update-agent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid: view.id, updates }),
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data?.error || "Failed to update agent");
-
-      setAgents((prev) =>
-        prev.map((a) => (a.id === view.id ? { ...a, ...updates } : a))
-      );
+      // Persist updates and refresh local state
+      await setDoc(doc(collection(db, 'Agents'), view.id), { ...updates, updatedAt: Date.now() }, { merge: true });
+      setAgents((prev) => prev.map((a) => (a.id === view.id ? { ...a, ...updates } : a)));
       setView((v) => (v ? { ...v, ...updates } : v));
       toast({ title: "Agent updated", variant: "success" });
     } catch (err: any) {
@@ -188,7 +243,28 @@ export default function AgentsPage() {
             Manage agent accounts and performance.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-2">
+            <select
+              value={searchBy}
+              onChange={(e) => setSearchBy(e.target.value as any)}
+              className="rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-2 py-2 text-sm"
+            >
+              <option value="name">Name</option>
+              <option value="phone">Mobile</option>
+              <option value="agentId">Agent ID</option>
+            </select>
+            <div className="relative">
+              <Search className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-foreground/60" aria-hidden />
+              <input
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                placeholder={`Search by ${searchBy === 'phone' ? 'mobile' : searchBy}`}
+                className="w-[320px] rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 pl-8 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]"
+              />
+            </div>
+          </div>
+          <Separator orientation="vertical" className="hidden sm:block h-8" />
           <Button size="sm" onClick={() => setOpen(true)}>
             Add Agent
           </Button>
@@ -198,8 +274,28 @@ export default function AgentsPage() {
       <section className="rounded-xl border border-black/10 dark:border-white/10 bg-[var(--surface)]/60 dark:bg-white/5">
         <div className="p-4 flex items-center justify-between">
           <h2 className="text-base font-semibold">All Agents</h2>
-          <div className="flex gap-2">
-            <Badge variant="outline">{agents.length} total</Badge>
+          <div className="flex gap-2 items-center">
+            <div className="sm:hidden flex items-center gap-2">
+              <select
+                value={searchBy}
+                onChange={(e) => setSearchBy(e.target.value as any)}
+                className="rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-2 py-2 text-xs"
+              >
+                <option value="name">Name</option>
+                <option value="phone">Mobile</option>
+                <option value="agentId">Agent ID</option>
+              </select>
+              <div className="relative">
+                <Search className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-foreground/60" aria-hidden />
+                <input
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  placeholder={`Search ${searchBy}`}
+                  className="w-[200px] rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 pl-8 pr-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[var(--brand)]"
+                />
+              </div>
+            </div>
+            <Badge variant="outline">{filteredAgents.length}/{agents.length}</Badge>
           </div>
         </div>
         <Separator />
@@ -208,15 +304,17 @@ export default function AgentsPage() {
             <thead className="text-left text-foreground/70">
               <tr>
                 <th className="p-3">Agent</th>
+                <th className="p-3">Agent ID</th>
                 <th className="p-3">Email</th>
                 <th className="p-3">Status</th>
                 <th className="p-3">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-black/10 dark:divide-white/10">
-              {agents.map((ag) => (
+              {filteredAgents.map((ag) => (
                 <tr key={ag.id}>
                   <td className="p-3 font-medium">{ag.name}</td>
+                  <td className="p-3">{ag.agentId || "—"}</td>
                   <td className="p-3">{ag.email}</td>
                   <td className="p-3">
                     {ag.status === "Active" && (
@@ -376,16 +474,7 @@ export default function AgentsPage() {
                     ))}
                   </select>
                 </div>
-                <div className="grid gap-1.5">
-                  <Label htmlFor="username">Username</Label>
-                  <input
-                    id="username"
-                    name="username"
-                    required
-                    placeholder="Choose a username"
-                    className="w-full rounded-lg bg-[var(--surface)] dark:bg-white/5 border border-black/10 dark:border-white/10 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--brand)]"
-                  />
-                </div>
+                {/* Username field removed as per request */}
                 <div className="grid gap-1.5">
                   <Label htmlFor="nidPhoto">Photo of NID (optional)</Label>
                   <input

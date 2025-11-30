@@ -1,197 +1,83 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { auth, db } from "@/lib/firebase";
-import { collection, doc, onSnapshot, orderBy, query, limit } from "firebase/firestore";
-import { ExternalLink, Play, Smartphone, Gift, Target, Zap } from "lucide-react";
-import { useToast } from "@/components/ui/toast";
+import { collection, doc, onSnapshot, query, where } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
-interface EarningTask {
-  id: string;
-  title: string;
-  description: string;
-  reward: string;
-  points: number;
-  icon: React.ReactNode;
-  type: 'survey' | 'video' | 'app' | 'offer' | 'task';
-  status: 'available' | 'loading' | 'completed';
-}
+// Earnings page now only shows statistics
 
 export default function EarningsPage() {
-  const [points, setPoints] = useState<number | null>(null);
-  const [ledger, setLedger] = useState<Array<{ id: string; ts?: any; amount: number; offer_name?: string; source?: string }>>([]);
-  const [tasks, setTasks] = useState<EarningTask[]>([]);
-  const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
-  const { toast } = useToast();
+  const [uid, setUid] = useState<string | null>(null);
+  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [bonusFromAgent, setBonusFromAgent] = useState<number>(0);
+  const [earnedOnline, setEarnedOnline] = useState<number>(0);
+  const [bonusFromAdmin, setBonusFromAdmin] = useState<number>(0);
 
+  // Track auth and resolve CustomerID
   useEffect(() => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return;
-    const userRef = doc(db, "users", uid);
-    const unsubUser = onSnapshot(userRef, (snap) => {
-      const data = snap.data() as any;
-      setPoints(typeof data?.points === "number" ? data.points : 0);
-    });
-    const ledgerRef = collection(db, "users", uid, "offerwall_ledger");
-    const q = query(ledgerRef, orderBy("ts", "desc"), limit(15));
-    const unsubLedger = onSnapshot(q, (snap) => {
-      setLedger(
-        snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }))
-      );
-    });
-    
-    // Initialize earning tasks
-    setTasks([
-      {
-        id: 'adgem-offers',
-        title: 'AdGem Offerwall',
-        description: 'Complete surveys, offers, and app installs to earn rewards',
-        reward: '$0.10 - $25.00',
-        points: 25,
-        icon: <Target className="h-5 w-5" />,
-        type: 'survey',
-        status: 'available'
-      },
-      {
-        id: 'revenuecpm-link',
-        title: 'Watch Ads (RevenueCPM)',
-        description: 'Open the ads page and start earning by watching ads',
-        reward: 'Varies',
-        points: 5,
-        icon: <Play className="h-5 w-5" />,
-        type: 'video',
-        status: 'available'
-      },
-      {
-        id: 'watch-ads',
-        title: 'Watch Video Ads',
-        description: 'Watch short video advertisements to earn points',
-        reward: '$0.05 - $0.25',
-        points: 5,
-        icon: <Play className="h-5 w-5" />,
-        type: 'video',
-        status: 'available'
-      },
-      {
-        id: 'install-apps',
-        title: 'Install & Try Apps',
-        description: 'Download apps and use them for a specified time',
-        reward: '$0.50 - $3.00',
-        points: 50,
-        icon: <Smartphone className="h-5 w-5" />,
-        type: 'app',
-        status: 'available'
-      },
-      {
-        id: 'special-offers',
-        title: 'Special Offers',
-        description: 'Sign up for services, make purchases, or try free trials',
-        reward: '$1.00 - $25.00',
-        points: 100,
-        icon: <Gift className="h-5 w-5" />,
-        type: 'offer',
-        status: 'available'
-      },
-      {
-        id: 'daily-tasks',
-        title: 'Daily Tasks',
-        description: 'Complete daily check-ins and bonus activities',
-        reward: '$0.10 - $1.00',
-        points: 10,
-        icon: <Zap className="h-5 w-5" />,
-        type: 'task',
-        status: 'available'
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      setUid(user?.uid || null);
+      setCustomerId(null);
+      setBonusFromAgent(0);
+      setEarnedOnline(0);
+      setBonusFromAdmin(0);
+      if (user) {
+        onSnapshot(doc(db, "Customers", user.uid), (snap) => {
+          const x = (snap.data() as any) || {};
+          const cid = String(x.CustomerID || x.customerId || x.CustomerId || "").trim() || null;
+          setCustomerId(cid);
+        });
       }
-    ]);
-    
-    return () => {
-      unsubUser();
-      unsubLedger();
-    };
+    });
+    return () => unsubAuth();
   }, []);
 
-  const handleTaskClick = async (task: EarningTask) => {
-    if (loading[task.id]) return;
-    
-    const uid = auth.currentUser?.uid;
-    if (!uid) {
-      toast({ title: 'Please login to continue', variant: 'destructive' });
-      return;
-    }
+  // Bonus from Agent
+  useEffect(() => {
+    if (!customerId) return;
+    const q1 = query(collection(db, "AgentToCustomerTransfer"), where("customerId", "==", customerId));
+    const unsub1 = onSnapshot(q1, (snap) => {
+      const total = snap.docs.reduce((sum, d) => {
+        const x = (d.data() as any) || {};
+        return sum + Number(x.amount || 0);
+      }, 0);
+      setBonusFromAgent(total);
+    });
+    return () => unsub1();
+  }, [customerId]);
 
-    setLoading(prev => ({ ...prev, [task.id]: true }));
+  // Earned Online
+  useEffect(() => {
+    if (!customerId) return;
+    const q2 = query(collection(db, "CustomerEarningsFromOnline"), where("customerId", "==", customerId));
+    const unsub2 = onSnapshot(q2, (snap) => {
+      const total = snap.docs.reduce((sum, d) => {
+        const x = (d.data() as any) || {};
+        return sum + Number(x.pointsEarned || 0);
+      }, 0);
+      setEarnedOnline(total);
+    });
+    return () => unsub2();
+  }, [customerId]);
 
-    try {
-      if (task.id === 'adgem-offers') {
-        // Handle AdGem offerwall
-        const response = await fetch(`/api/adgem-url?userId=${uid}`);
-        const data = await response.json();
+  // Bonus from Admin
+  useEffect(() => {
+    if (!customerId) return;
+    const q3 = query(collection(db, "AdminToCustomerTransfer"), where("customerId", "==", customerId));
+    const unsub3 = onSnapshot(q3, (snap) => {
+      const total = snap.docs.reduce((sum, d) => {
+        const x = (d.data() as any) || {};
+        return sum + Number(x.amount || 0);
+      }, 0);
+      setBonusFromAdmin(total);
+    });
+    return () => unsub3();
+  }, [customerId]);
 
-        if (data.success) {
-          window.open(data.url, '_blank', 'width=900,height=700');
-          toast({
-            title: 'Offerwall opened',
-            description: 'Complete AdGem offers to earn rewards!',
-            variant: 'success'
-          });
-        } else {
-          toast({
-            title: 'Configuration needed',
-            description: data.error || 'AdGem not configured',
-            variant: 'destructive'
-          });
-        }
-      } else if (task.id === 'revenuecpm-link') {
-        // Open the provided external ads link only on explicit user click
-        const externalUrl = 'https://www.revenuecpmgate.com/n0qnaa5yhh?key=71ac802b2f41d2ba32121f9ad3d39e9b';
-        window.open(externalUrl, '_blank', 'width=900,height=700');
-        toast({
-          title: 'Ads page opened',
-          description: 'Watch ads on the opened page to earn.',
-          variant: 'success'
-        });
-      } else {
-        // For other task types, show a placeholder message
-        toast({ 
-          title: 'Coming Soon', 
-          description: `${task.title} will be available soon!`,
-          variant: 'default' 
-        });
-      }
-    } catch (error) {
-      console.error('Error handling task:', error);
-      toast({ 
-        title: 'Error', 
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive' 
-      });
-    } finally {
-      setLoading(prev => ({ ...prev, [task.id]: false }));
-    }
-  };
-
-  const calculateEarnings = () => {
-    const thisMonth = new Date();
-    thisMonth.setDate(1);
-    thisMonth.setHours(0, 0, 0, 0);
-    
-    const monthlyEarnings = ledger
-      .filter(entry => entry.ts?.toDate && entry.ts.toDate() >= thisMonth)
-      .reduce((sum, entry) => sum + (entry.amount || 0), 0);
-    
-    const totalEarnings = ledger.reduce((sum, entry) => sum + (entry.amount || 0), 0);
-    
-    return {
-      monthly: monthlyEarnings,
-      total: totalEarnings,
-      pending: 0 // You can implement pending calculation based on your needs
-    };
-  };
-
-  const earnings = calculateEarnings();
+  const total = useMemo(() => bonusFromAgent + earnedOnline + bonusFromAdmin, [bonusFromAgent, earnedOnline, bonusFromAdmin]);
 
   return (
     <div className="space-y-6">
@@ -202,159 +88,18 @@ export default function EarningsPage() {
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="bg-emerald-500/15 text-emerald-600">
-            {points ?? 0} Points Available
+            {total} Points Available
           </Badge>
           <Button size="sm">Withdraw</Button>
         </div>
       </header>
-
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <SummaryCard label="Points Balance" value={`${points ?? 0} pts`} delta="" />
-        <SummaryCard label="This Month" value={`${earnings.monthly} pts`} delta="+12.5%" />
-        <SummaryCard label="Pending" value={`${earnings.pending} pts`} delta="0%" />
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <SummaryCard label="Total Earnings" value={`${total} pts`} delta="" />
+        <SummaryCard label="Bonus from Agent" value={`${bonusFromAgent} pts`} delta="" />
+        <SummaryCard label="Earned Online" value={`${earnedOnline} pts`} delta="" />
+        <SummaryCard label="Bonus from Admin" value={`${bonusFromAdmin} pts`} delta="" />
       </section>
 
-      {/* Earning Tasks Section */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Available Tasks</h2>
-          <Badge variant="outline">{tasks.filter(t => t.status === 'available').length} Available</Badge>
-        </div>
-        
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {tasks.map((task) => (
-            <TaskCard 
-              key={task.id} 
-              task={task} 
-              loading={loading[task.id]} 
-              onClick={() => handleTaskClick(task)}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* Earnings History */}
-      <section className="rounded-xl border border-black/10 dark:border-white/10 bg-[var(--surface)]/60 dark:bg-white/5">
-        <div className="p-4 flex items-center justify-between">
-          <h2 className="text-base font-semibold">Earnings History</h2>
-          <Badge variant="outline">Recent Activity</Badge>
-        </div>
-        <Separator />
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="text-left text-foreground/70">
-              <tr>
-                <th className="p-3">Time</th>
-                <th className="p-3">Source</th>
-                <th className="p-3">Amount</th>
-                <th className="p-3">Description</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-black/10 dark:divide-white/10">
-              {ledger.length > 0 ? ledger.map((row) => (
-                <tr key={row.id} className="hover:bg-black/5 dark:hover:bg-white/5">
-                  <td className="p-3 text-foreground/80">
-                    {row.ts?.toDate ? row.ts.toDate().toLocaleString() : "Recent"}
-                  </td>
-                  <td className="p-3">
-                    <Badge variant="outline" className={
-                      row.source === 'adgem' ? 'bg-emerald-500/15 text-emerald-600 border-emerald-200' :
-                      row.source?.includes('chargeback') ? 'bg-red-500/15 text-red-600 border-red-200' :
-                      'bg-blue-500/15 text-blue-600 border-blue-200'
-                    }>
-                      {row.source === 'adgem' ? 'Offer' :
-                       row.source?.includes('chargeback') ? 'Refund' :
-                       'Other'}
-                    </Badge>
-                  </td>
-                  <td className="p-3">
-                    <span className={`font-medium ${
-                      row.amount >= 0 ? 'text-emerald-600 dark:text-emerald-300' : 'text-red-600 dark:text-red-300'
-                    }`}>
-                      {row.amount >= 0 ? '+' : ''}{row.amount} pts
-                    </span>
-                  </td>
-                  <td className="p-3 text-foreground/70">{row.offer_name || "Earning Task"}</td>
-                </tr>
-              )) : (
-                <tr>
-                  <td colSpan={4} className="p-8 text-center text-foreground/60">
-                    <div className="flex flex-col items-center gap-2">
-                      <Target className="h-8 w-8 opacity-50" />
-                      <p>No earnings yet. Complete your first task above!</p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function TaskCard({ task, loading, onClick }: { task: EarningTask; loading?: boolean; onClick: () => void }) {
-  return (
-    <div className="rounded-xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)] p-4 hover:bg-[var(--surface)]/80 transition-colors">
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-emerald-500/15 text-emerald-600">
-            {task.icon}
-          </div>
-          <div>
-            <h3 className="font-semibold text-sm">{task.title}</h3>
-            <p className="text-xs text-foreground/70">{task.reward}</p>
-          </div>
-        </div>
-        <Badge 
-          variant="secondary" 
-          className={`text-xs ${
-            task.type === 'survey' ? 'bg-emerald-500/15 text-emerald-600' :
-            task.type === 'video' ? 'bg-blue-500/15 text-blue-600' :
-            task.type === 'app' ? 'bg-purple-500/15 text-purple-600' :
-            task.type === 'offer' ? 'bg-orange-500/15 text-orange-600' :
-            'bg-yellow-500/15 text-yellow-600'
-          }`}
-        >
-          {task.type === 'survey' ? '📋 Survey' :
-           task.type === 'video' ? '📺 Video' :
-           task.type === 'app' ? '📱 App' :
-           task.type === 'offer' ? '🎁 Offer' :
-           '⚡ Task'}
-        </Badge>
-      </div>
-      
-      <p className="text-sm text-foreground/80 mb-4">{task.description}</p>
-      
-      <div className="flex items-center justify-between">
-        <div className="text-sm font-medium text-emerald-600">
-          Up to {task.points}+ pts
-        </div>
-        <Button 
-          size="sm" 
-          onClick={onClick}
-          disabled={loading || task.status === 'completed'}
-          className="bg-[var(--brand)] text-black hover:brightness-110"
-        >
-          {loading ? (
-            <>
-              <svg className="animate-spin mr-2 h-4 w-4" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V2.5a.5.5 0 0 1 1 0V4a8 8 0 1 1-8 8z" />
-              </svg>
-              Loading...
-            </>
-          ) : task.status === 'completed' ? (
-            'Completed'
-          ) : (
-            <>
-              Start
-              <ExternalLink className="ml-1 h-3 w-3" />
-            </>
-          )}
-        </Button>
-      </div>
     </div>
   );
 }
@@ -369,3 +114,4 @@ function SummaryCard({ label, value, delta }: { label: string; value: string; de
     </div>
   );
 }
+

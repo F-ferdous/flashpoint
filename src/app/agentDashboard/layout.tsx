@@ -69,25 +69,30 @@ export default function AgentLayout({
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
-      const ADMIN = "admin@fsalbd.com";
       if (!user) {
         router.replace("/login");
         return;
       }
       // Admin accounts should not access agent dashboard
-      if (user.email === ADMIN) {
+      if ((user.email || "").toLowerCase() === "admin@gesaflash.com") {
         router.replace("/admin");
         return;
       }
       try {
-        const snap = await getDoc(doc(db, "agents", user.uid));
+        const snap = await getDoc(doc(db, "Agents", user.uid));
         const data = (snap.exists() ? (snap.data() as any) : undefined) as any;
-        const role = data?.role as string | undefined;
-        if (String(role ?? "").toLowerCase() === "agent") {
+        const role = String(data?.Role || data?.role || "").toLowerCase();
+        if (role === "agent") {
           setEmail(user.email ?? null);
-          setAgentName((data?.name as string | undefined) ?? null);
-          setAgentCode((data?.agentId as string | undefined) ?? null);
+          setAgentName((data?.fullName as string | undefined) ?? (data?.name as string | undefined) ?? null);
+          setAgentCode((data?.AgentID as string | undefined) ?? (data?.agentId as string | undefined) ?? null);
           setLoading(false);
+          return;
+        }
+        // If this is actually a customer, redirect them
+        const cSnap = await getDoc(doc(db, "Customers", user.uid));
+        if (cSnap.exists()) {
+          router.replace("/userDashboard");
           return;
         }
       } catch {}

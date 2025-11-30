@@ -6,13 +6,7 @@ import { auth, db } from "@/lib/firebase";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import {
-  collection,
-  doc,
-  onSnapshot,
-  query,
-  where,
-} from "firebase/firestore";
+import { collection, doc, onSnapshot, query, where } from "firebase/firestore";
 
 type LedgerEntry = {
   id: string;
@@ -27,6 +21,7 @@ export default function EarningsPage() {
   const [points, setPoints] = useState<number>(0);
   const [ledger, setLedger] = useState<LedgerEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [agentId, setAgentId] = useState<string | null>(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -36,48 +31,58 @@ export default function EarningsPage() {
     return () => unsub();
   }, []);
 
-  // Subscribe to agent points and approved referrals as ledger entries
+  // Subscribe to agent profile to get AgentID
   useEffect(() => {
     if (!uid) return;
+    const unsub = onSnapshot(doc(db, "Agents", uid), (snap) => {
+      const x = (snap.data() as any) || {};
+      const aid = String(x.AgentID || x.agentId || x.AgentId || "").trim() || null;
+      setAgentId(aid);
+    });
+    return () => unsub();
+  }, [uid]);
+
+  // Subscribe to AdminToAgentTransfer to compute total points using AgentID
+  useEffect(() => {
+    if (!agentId) return;
     setLoading(true);
-    const unsubs: Array<() => void> = [];
+    const qAgg = query(collection(db, "AdminToAgentTransfer"), where("agentId", "==", agentId));
+    const unsubAgg = onSnapshot(qAgg, (snap) => {
+      // Expecting a single doc per agentId; sum in case of duplicates
+      const total = snap.docs.reduce((sum, d) => {
+        const x = (d.data() as any) || {};
+        return sum + Number(x.amount || 0);
+      }, 0);
+      setPoints(total);
+      setLoading(false);
+    });
+    return () => unsubAgg();
+  }, [agentId]);
 
-    // Agent points
-    unsubs.push(
-      onSnapshot(doc(db, "agents", uid), (snap) => {
-        const data = snap.data() as any;
-        setPoints(Number(data?.points || 0));
-      })
-    );
-
-    // Approved referrals as credits (100 points each)
-    const q = query(
-      collection(db, "pendingUsers"),
-      where("referrerUid", "==", uid),
-      where("status", "==", "Approved")
-    );
-    unsubs.push(
-      onSnapshot(q, (snap) => {
-        const items: LedgerEntry[] = snap.docs
-          .map((d) => {
-            const x = d.data() as any;
-            return {
-              id: d.id,
-              time: Number(x.approvedAt || x.updatedAt || Date.now()),
-              type: "Credit" as const,
-              amount: 100,
-              note: `Referral approved: ${(x.fullName || "").toString()}`,
-            };
-          })
-          .sort((a, b) => b.time - a.time);
-        setLedger(items);
-        setLoading(false);
-      })
-    );
-
-    return () => {
-      unsubs.forEach((u) => u());
-    };
+  // Keep ledger from AdminTransfers (may be empty if admin no longer writes here for agents)
+  useEffect(() => {
+    if (!uid) return;
+    const q = query(collection(db, "AdminTransfers"), where("uid", "==", uid));
+    const unsub = onSnapshot(q, (snap) => {
+      const items: LedgerEntry[] = snap.docs
+        .map((d) => {
+          const x = d.data() as any;
+          if (String(x.type || "").toLowerCase() !== "agent") return null;
+          const ts = x.ts?.toDate ? x.ts.toDate().getTime() : Date.now();
+          const amt = Number(x.amount || 0);
+          return {
+            id: d.id,
+            time: ts,
+            type: amt >= 0 ? ("Credit" as const) : ("Debit" as const),
+            amount: Math.abs(amt),
+            note: x.note || `Admin transfer (${x.adminEmail || "Admin"})`,
+          };
+        })
+        .filter(Boolean) as any;
+      (items as LedgerEntry[]).sort((a, b) => b.time - a.time);
+      setLedger(items);
+    });
+    return () => unsub();
   }, [uid]);
 
   const totalReferrals = useMemo(() => ledger.length, [ledger]);

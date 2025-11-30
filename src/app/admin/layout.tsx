@@ -3,14 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Users as UsersIcon, User, ShieldCheck, Send, Wallet as WalletIcon, Banknote } from "lucide-react";
+import { LayoutDashboard, Users as UsersIcon, User, ShieldCheck, Send, Wallet as WalletIcon, Banknote, Globe } from "lucide-react";
 import { ToastProvider, Toaster, useToast } from "@/components/ui/toast";
 import { useI18n } from "@/lib/i18n";
 
@@ -22,6 +20,7 @@ const navItems = [
   { href: "/admin/transfer", k: "dash.admin.nav.transfer", icon: Send, tone: { bg: "bg-sky-500/15", text: "text-sky-600 dark:text-sky-300" } },
   { href: "/admin/wallet", k: "dash.admin.nav.wallet", icon: WalletIcon, tone: { bg: "bg-rose-500/15", text: "text-rose-600 dark:text-rose-300" } },
   { href: "/admin/payouts", k: "dash.admin.nav.payouts", icon: Banknote, tone: { bg: "bg-teal-500/15", text: "text-teal-600 dark:text-teal-300" } },
+  { href: "/admin/earn-online", k: "dash.admin.nav.earn_online", icon: Globe, tone: { bg: "bg-sky-500/15", text: "text-sky-600 dark:text-sky-300" } },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -31,24 +30,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { t } = useI18n();
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      const email = user?.email ?? "";
-      const ADMIN = "admin@fsalbd.com";
-      const AGENT = "agent@fsalbd.com";
-      const USER = "user@fsalbd.com";
-      if (!email) {
-        router.replace("/login");
-      } else if (email === ADMIN) {
-        setLoading(false);
-      } else if (email === AGENT) {
-        router.replace("/agentDashboard");
-      } else if (email === USER) {
-        router.replace("/userDashboard");
-      } else {
-        router.replace("/login");
-      }
-    });
-    return () => unsub();
+    // UI-only: no auth guard, show layout directly
+    setLoading(false);
   }, [router]);
 
   if (loading) {
@@ -190,14 +173,9 @@ function LogoutButton({ onDone }: { onDone: () => void }) {
   return (
     <Button
       className="w-full bg-[var(--brand)] text-black hover:brightness-110"
-      onClick={async () => {
-        try {
-          await signOut(auth);
-          toast({ title: t("dash.common.signed_out"), variant: "success" });
-          onDone();
-        } catch (e) {
-          toast({ title: t("dash.common.sign_out_failed"), variant: "destructive" });
-        }
+      onClick={() => {
+        toast({ title: t("dash.common.signed_out"), variant: "success" });
+        onDone();
       }}
     >
       {t("dash.common.logout")}

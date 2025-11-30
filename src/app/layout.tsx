@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GESA Flash Bangladesh — Learn & Earn, Health & Wealth, ShopWell, Entrepreneurship",
+  title: "Gesa Flash Program",
   description:
     "The Gesa Flash Program is a collaborative initiative supported by Flash Service Agency Limited that provides technology-driven services to promote education, health, skill development, social awareness, and earning opportunities in Bangladesh.",
   icons: {
@@ -24,7 +24,6 @@ export const metadata: Metadata = {
     shortcut: "/favicon.svg",
     apple: "/favicon.svg",
   },
-  themeColor: "#10b981",
   keywords: [
     "GESA Flash Bangladesh",
     "Learn & Earn",
@@ -43,22 +42,26 @@ export const metadata: Metadata = {
     "Earning Opportunities",
     "Bangladesh",
   ],
-  applicationName: "Flash Services Agency",
+  applicationName: "Gesa Flash Program",
   openGraph: {
-    title: "GESA Flash Bangladesh — Learn & Earn, Health & Wealth, ShopWell, Entrepreneurship",
+    title: "Gesa Flash Program",
     description:
       "The Gesa Flash Program is a collaborative initiative supported by Flash Service Agency Limited that provides technology-driven services to promote education, health, skill development, social awareness, and earning opportunities in Bangladesh.",
     url: "/",
-    siteName: "Flash Services Agency",
+    siteName: "Gesa Flash Program",
     locale: "bn_BD",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "GESA Flash Bangladesh — Learn & Earn, Health & Wealth, ShopWell, Entrepreneurship",
+    title: "Gesa Flash Program",
     description:
       "The Gesa Flash Program is a collaborative initiative supported by Flash Service Agency Limited that provides technology-driven services to promote education, health, skill development, social awareness, and earning opportunities in Bangladesh.",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#10b981",
 };
 
 export default function RootLayout({
@@ -88,15 +91,16 @@ export default function RootLayout({
         </Script>
         <LanguageProvider>
           {/* JSON-LD: GESA Flash Program */}
-          <Script id="ldjson-gesa" type="application/ld+json" strategy="afterInteractive">
+          <Script
+            id="ldjson-gesa"
+            type="application/ld+json"
+            strategy="afterInteractive"
+          >
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
               name: "GESA Flash Bangladesh",
-              alternateName: [
-                "GESA",
-                "GESA Flash Program",
-              ],
+              alternateName: ["GESA", "GESA Flash Program"],
               url: "/",
               description:
                 "The Gesa Flash Program is a collaborative initiative supported by Flash Service Agency Limited that provides technology-driven services to promote education, health, skill development, social awareness, and earning opportunities in Bangladesh.",
@@ -118,9 +122,7 @@ export default function RootLayout({
               ],
             })}
           </Script>
-          <RootChrome>
-            {children}
-          </RootChrome>
+          <RootChrome>{children}</RootChrome>
         </LanguageProvider>
       </body>
     </html>

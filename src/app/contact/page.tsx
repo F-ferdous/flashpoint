@@ -63,6 +63,27 @@ export default function ContactPage() {
           </form>
         </div>
       </div>
+
+      <div className="relative mt-8">
+        <div className="rounded-2xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)]/50 backdrop-blur-md">
+          <div className="p-8 sm:p-12 grid gap-8 sm:grid-cols-2">
+            <div>
+              <h2 className="text-lg font-semibold mb-2">Head Office</h2>
+              <p className="text-sm text-foreground/80">
+                Grameen Economic & Social Advancement (GESA)
+                <br />
+                Mafizuddin Road, Racecourse, Adarshaw Sadar, Cumilla
+              </p>
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold mb-2">Dhaka Office</h2>
+              <p className="text-sm text-foreground/80">
+                Suit:12, BGB Supermarket, Lalitmohan Das Lane, Lalbagh, Dhaka
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

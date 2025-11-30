@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
+import { auth, db } from "@/lib/firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -23,7 +23,7 @@ export default function Navbar() {
   const { t, lang, setLang } = useI18n();
   const pathname = usePathname();
   const isHome = pathname === "/";
-  const user = auth.currentUser;
+  const user = null;
 
   useEffect(() => {
     // Initialize theme based on the current <html> classes set by the early script
@@ -53,53 +53,44 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  // Watch auth state for Navbar controls and compute dashboard destination
+  // Auth listener: set dashboard link based on role
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
-      const em = user?.email ?? null;
-      const userId = user?.uid;
-      setEmail(em);
-
-      // Admin by explicit email
-      if (em && em.toLowerCase() === "admin@fsalbd.com") {
+      if (!user) {
+        setEmail(null);
+        setDashboardHref("/userDashboard");
+        return;
+      }
+      const em = (user.email || "").toLowerCase();
+      setEmail(user.email || null);
+      if (em === "admin@gesaflash.com") {
         setDashboardHref("/admin");
         return;
       }
-      // Agent role from agents collection
-      if (userId) {
-        try {
-          const aSnap = await getDoc(doc(db, "agents", userId));
-          if (aSnap.exists()) {
-            const role = String(
-              (aSnap.data() as any)?.role ?? ""
-            ).toLowerCase();
-            if (role === "agent") {
-              setDashboardHref("/agentDashboard");
-              return;
-            }
+      try {
+        const cSnap = await getDoc(doc(db, "Customers", user.uid));
+        if (cSnap.exists()) {
+          const role = String((cSnap.data() as any)?.Role || "").toLowerCase();
+          if (role === "customer") {
+            setDashboardHref("/userDashboard");
+            return;
           }
-        } catch {}
-
-        try {
-          const aSnap = await getDoc(doc(db, "customers", userId));
-          if (aSnap.exists()) {
-            const role = String(
-              (aSnap.data() as any)?.role ?? ""
-            ).toLowerCase();
-            const status = String(
-              (aSnap.data() as any)?.status ?? ""
-            ).toLowerCase();
-            if (role === "Customer" && status === "Active") {
-              setDashboardHref("/userDashboard");
-              return;
-            }
+        }
+      } catch {}
+      try {
+        const aSnap = await getDoc(doc(db, "Agents", user.uid));
+        if (aSnap.exists()) {
+          const role = String((aSnap.data() as any)?.Role || "").toLowerCase();
+          if (role === "agent") {
+            setDashboardHref("/agentDashboard");
+            return;
           }
-        } catch {}
-      }
-      // Default: user/customer dashboard
+        }
+      } catch {}
+      setDashboardHref("/userDashboard");
     });
     return () => unsub();
-  }, [user]);
+  }, []);
 
   const toggleTheme = () => {
     const next = !isDark;
@@ -120,6 +111,13 @@ export default function Navbar() {
 
   const changeLanguage = (l: "bn" | "en") => {
     setLang(l);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (_) {}
+    router.replace("/login");
   };
 
   return (
@@ -216,12 +214,7 @@ export default function Navbar() {
                   Dashboard
                 </Link>
                 <button
-                  onClick={async () => {
-                    try {
-                      await signOut(auth);
-                      router.replace("/login");
-                    } catch (_) {}
-                  }}
+                  onClick={handleLogout}
                   className="text-md btn-pill px-4 py-2 btn-brand-outline hover:opacity-90"
                 >
                   {t("common.logout")}
@@ -466,12 +459,7 @@ export default function Navbar() {
                   Dashboard
                 </Link>
                 <button
-                  onClick={async () => {
-                    try {
-                      await signOut(auth);
-                      router.replace("/login");
-                    } catch (_) {}
-                  }}
+                  onClick={handleLogout}
                   className="mx-2 px-3 py-2 btn-pill text-center btn-brand-outline"
                 >
                   {t("common.logout")}

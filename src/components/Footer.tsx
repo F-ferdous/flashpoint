@@ -184,6 +184,27 @@ export default function Footer() {
             </nav>
           </div>
 
+          <div className="mt-10 grid gap-8 sm:grid-cols-2">
+            <div>
+              <h5 className="text-sm font-semibold mb-3 text-white">
+                Head Office
+              </h5>
+              <p className="text-sm text-white/80">
+                Grameen Economic & Social Advancement (GESA)
+                <br />
+                Mafizuddin Road, Racecourse, Adarshaw Sadar, Cumilla
+              </p>
+            </div>
+            <div>
+              <h5 className="text-sm font-semibold mb-3 text-white">
+                Dhaka Office
+              </h5>
+              <p className="text-sm text-white/80">
+                Suit:12, BGB Supermarket, Lalitmohan Das Lane, Lalbagh, Dhaka
+              </p>
+            </div>
+          </div>
+
           <div className="mt-10 border-top border-white/10 pt-6 flex items-center justify-between text-xs text-white/70">
             <p>{t("footer.rights", { year: new Date().getFullYear() })}</p>
             <p>{t("footer.made_with")}</p>

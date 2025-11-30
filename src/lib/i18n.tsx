@@ -1,6 +1,13 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 export type Lang = "bn" | "en";
 
@@ -8,7 +15,7 @@ export type Lang = "bn" | "en";
 const translations = {
   bn: {
     common: {
-      brand_title: "ফ্ল্যাশ সার্ভিসেস এজেন্সি",
+      brand_title: "জিসা ফ্ল্যাশ প্রোগ্রাম",
       logout: "লগ আউট",
       login: "লগ ইন",
       get_started: "শুরু করুন",
@@ -30,11 +37,13 @@ const translations = {
       hero_h1_p1: "GESA Flash – দক্ষতা,",
       hero_h1_p2: "স্বাস্থ্য ও প্রযুক্তির সমন্বয়ে",
       hero_h1_p3: "সক্ষম বাংলাদেশ",
-      hero_sub: "শিক্ষা, স্বাস্থ্য, উদ্যোক্তা উন্নয়ন ও সাধারণ কল্যাণের জন্য প্রযুক্তি চালিত উদ্যোগ।",
+      hero_sub:
+        "শিক্ষা, স্বাস্থ্য, উদ্যোক্তা উন্নয়ন ও সাধারণ কল্যাণের জন্য প্রযুক্তি চালিত উদ্যোগ।",
       hero_cta_primary: "এখনই যোগ দিন",
       hero_cta_secondary: "রোডম্যাপ দেখুন",
       about_title: "আমাদের পরিচিতি",
-      about_desc: "GESA Flash বাংলাদেশের জন্য, উদ্ভাবন ও সাধারণ জনগণের উন্নয়নের জন্য নতুনতর সমাধান করে। শিক্ষা, স্বাস্থ্য, উদ্যোক্তা উন্নয়ন এবং প্রযুক্তি সচেতনতার মাধ্যমে সমাজে ইতিবাচক পরিবর্তন আনাই আমাদের লক্ষ্য।",
+      about_desc:
+        "GESA Flash বাংলাদেশের জন্য, উদ্ভাবন ও সাধারণ জনগণের উন্নয়নের জন্য নতুনতর সমাধান করে। শিক্ষা, স্বাস্থ্য, উদ্যোক্তা উন্নয়ন এবং প্রযুক্তি সচেতনতার মাধ্যমে সমাজে ইতিবাচক পরিবর্তন আনাই আমাদের লক্ষ্য।",
       about_pill_education: "শিক্ষা",
       about_pill_health: "স্বাস্থ্য",
       about_pill_entre: "উদ্যোক্তা",
@@ -55,7 +64,8 @@ const translations = {
       p7: "আইসিটি ও এআই",
       p7_desc: "আইসিটি ও কৃত্রিম বুদ্ধিমত্তা ভিত্তিক প্রকল্পসমূহ।",
       cta_band_title: "আপনিও যুক্ত হোন GESA Flash-এর সাথে",
-      cta_band_sub: "দক্ষতা, স্বাস্থ্য ও প্রযুক্তির সমন্বয়ে গড়ি স্বনির্ভর বাংলাদেশ।",
+      cta_band_sub:
+        "দক্ষতা, স্বাস্থ্য ও প্রযুক্তির সমন্বয়ে গড়ি স্বনির্ভর বাংলাদেশ।",
       cta_band_btn: "এখনই যোগ দিন",
     },
     dash: {
@@ -84,6 +94,7 @@ const translations = {
           transfer: "ট্রান্সফার",
           wallet: "ওয়ালেট",
           payouts: "পেআউটস",
+          earn_online: "অনলাইনে আয়",
         },
         header_title: "ড্যাশবোর্ড",
         header_sub: "আজকের কার্যকলাপ ও প্ল্যাটফর্ম পরিসংখ্যানের সারসংক্ষেপ।",
@@ -167,8 +178,7 @@ const translations = {
       h1_p1: "রিওয়ার্ড আনলক করুন, নেটওয়ার্ক বাড়ান ও সার্ভিস নিন ",
       h1_highlight: "— সব এক প্ল্যাটফর্মে",
       h1_p2: " সহজেই!",
-      desc:
-        "পরবর্তী প্রজন্মের গেমিফিকেশন ও সার্ভিস ইকোসিস্টেম যেখানে অ্যাডমিন, এজেন্ট, সেলার ও কাস্টমাররা পয়েন্ট, রেফারাল ও আয়ের মাধ্যমে যুক্ত থাকে। ইন্টারেক্টিভ ড্যাশবোর্ড, নিরবচ্ছিন্ন লেনদেন ও ইন্টিগ্রেটেড টেলিমেডিসিন — যেকোনো সময়, যেকোনো জায়গা থেকে।",
+      desc: "পরবর্তী প্রজন্মের গেমিফিকেশন ও সার্ভিস ইকোসিস্টেম যেখানে অ্যাডমিন, এজেন্ট, সেলার ও কাস্টমাররা পয়েন্ট, রেফারাল ও আয়ের মাধ্যমে যুক্ত থাকে। ইন্টারেক্টিভ ড্যাশবোর্ড, নিরবচ্ছিন্ন লেনদেন ও ইন্টিগ্রেটেড টেলিমেডিসিন — যেকোনো সময়, যেকোনো জায়গা থেকে।",
       cta_get_started: "শুরু করুন",
       cta_view_pricing: "মূল্য দেখুন",
       chip_live_points: "লাইভ পয়েন্টস",
@@ -183,13 +193,16 @@ const translations = {
       subtitle:
         "অ্যাকাউন্ট তৈরি করুন, অফারে অংশ নিন এবং আপনার ড্যাশবোর্ড থেকেই পয়েন্ট সংগ্রহ করুন।",
       step1_title: "অ্যাকাউন্ট তৈরি করুন",
-      step1_desc: "সাইন আপ করে প্রোফাইল ভেরিফাই করুন এবং আয়ের ড্যাশবোর্ডে প্রবেশ করুন।",
+      step1_desc:
+        "সাইন আপ করে প্রোফাইল ভেরিফাই করুন এবং আয়ের ড্যাশবোর্ডে প্রবেশ করুন।",
       step2_title: "বিজ্ঞাপন দেখুন",
       step2_desc: "স্বল্প সময়ের বিজ্ঞাপন দেখে সাথে সাথে পয়েন্ট অর্জন করুন।",
       step3_title: "অ্যাপ ইনস্টল করুন",
-      step3_desc: "ড্যাশবোর্ড থেকে অফার বেছে নিন, অ্যাপ ইনস্টল করুন এবং কাজ সম্পন্ন করুন।",
+      step3_desc:
+        "ড্যাশবোর্ড থেকে অফার বেছে নিন, অ্যাপ ইনস্টল করুন এবং কাজ সম্পন্ন করুন।",
       step4_title: "পয়েন্ট আয় করুন",
-      step4_desc: "সব কার্যকলাপ থেকে পয়েন্ট জমা হবে। যেকোনো সময় রিডিম বা কনভার্ট করুন।",
+      step4_desc:
+        "সব কার্যকলাপ থেকে পয়েন্ট জমা হবে। যেকোনো সময় রিডিম বা কনভার্ট করুন।",
       step_label: "ধাপ {n}",
     },
     telemedicine: {
@@ -244,7 +257,8 @@ const translations = {
       err_missing: "অনুগ্রহ করে ইমেইল ও পাসওয়ার্ড দিন।",
       err_default: "সাইন ইন করা যাচ্ছে না। পরে আবার চেষ্টা করুন।",
       err_invalid: "ইমেইল বা পাসওয়ার্ড সঠিক নয়।",
-      err_rate_limited: "অনেকবার চেষ্টা করা হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।",
+      err_rate_limited:
+        "অনেকবার চেষ্টা করা হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।",
       err_network: "নেটওয়ার্ক সমস্যা। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।",
       err_invalid_email: "সঠিক ইমেইল ঠিকানা দিন।",
     },
@@ -253,7 +267,8 @@ const translations = {
       badge: "অ্যাকাউন্ট তৈরি করুন",
       heading: "সাইন আপ করুন ",
       sub: "পয়েন্ট আয়, রিডিম ও টেলিমেডিসিন অ্যাক্সেস করতে যোগ দিন।",
-      need_referral: "সাইন আপ করতে একটি বৈধ রেফারেল লিংক প্রয়োজন। অনুগ্রহ করে কোনো এজেন্টের কাছ থেকে ইনভাইট লিংক সংগ্রহ করুন।",
+      need_referral:
+        "সাইন আপ করতে একটি বৈধ রেফারেল লিংক প্রয়োজন। অনুগ্রহ করে কোনো এজেন্টের কাছ থেকে ইনভাইট লিংক সংগ্রহ করুন।",
       full_name: "পূর্ণ নাম",
       full_name_ph: "Jane Doe",
       email: "ইমেইল",
@@ -283,7 +298,8 @@ const translations = {
       terms_privacy: "প্রাইভেসি পলিসি",
       creating: "তৈরি হচ্ছে...",
       create_account: "অ্যাকাউন্ট তৈরি করুন",
-      thanks: "ধন্যবাদ! রেফারেলের মাধ্যমে আপনার সাইন আপ তথ্য গ্রহণ করা হয়েছে। একজন এজেন্ট আপনার অ্যাকাউন্ট সম্পন্ন করবেন।",
+      thanks:
+        "ধন্যবাদ! রেফারেলের মাধ্যমে আপনার সাইন আপ তথ্য গ্রহণ করা হয়েছে। একজন এজেন্ট আপনার অ্যাকাউন্ট সম্পন্ন করবেন।",
       already: "ইতিমধ্যে অ্যাকাউন্ট আছে?",
       login: "লগ ইন",
     },
@@ -333,7 +349,7 @@ const translations = {
   },
   en: {
     common: {
-      brand_title: "Flash Services Agency",
+      brand_title: "Gesa Flash Program",
       logout: "Logout",
       login: "Log In",
       get_started: "Get Started",
@@ -382,7 +398,8 @@ const translations = {
       p7: "ICT & AI",
       p7_desc: "Projects in ICT and Artificial Intelligence.",
       cta_band_title: "Join GESA Flash today",
-      cta_band_sub: "Let’s build a self‑reliant Bangladesh with skills, health and tech.",
+      cta_band_sub:
+        "Let’s build a self‑reliant Bangladesh with skills, health and tech.",
       cta_band_btn: "Join Now",
     },
     navbar: {
@@ -397,8 +414,7 @@ const translations = {
       h1_p1: "Unlock Rewards, Grow Networks & Access Services ",
       h1_highlight: "– All in One Platform",
       h1_p2: " Effortlessly!",
-      desc:
-        "A next-gen gamification & service ecosystem where Admins, Agents, Sellers, and Customers connect through points, referrals, and earnings. Experience interactive dashboards, seamless transactions, and integrated telemedicine — anytime, anywhere.",
+      desc: "A next-gen gamification & service ecosystem where Admins, Agents, Sellers, and Customers connect through points, referrals, and earnings. Experience interactive dashboards, seamless transactions, and integrated telemedicine — anytime, anywhere.",
       cta_get_started: "Get Started",
       cta_view_pricing: "View Pricing",
       chip_live_points: "Live Points",
@@ -413,19 +429,23 @@ const translations = {
       subtitle:
         "Create your account, engage with offers, and collect points directly from your dashboard.",
       step1_title: "Create an Account",
-      step1_desc: "Sign up and verify your profile to access your earning dashboard.",
+      step1_desc:
+        "Sign up and verify your profile to access your earning dashboard.",
       step2_title: "Watch Ads",
       step2_desc: "Complete short ad views to earn points instantly.",
       step3_title: "Install Apps",
-      step3_desc: "Choose offers, install apps from your dashboard, and complete tasks.",
+      step3_desc:
+        "Choose offers, install apps from your dashboard, and complete tasks.",
       step4_title: "Earn Points",
-      step4_desc: "Points add up across all activities. Redeem or convert anytime.",
+      step4_desc:
+        "Points add up across all activities. Redeem or convert anytime.",
       step_label: "Step {n}",
     },
     telemedicine: {
       badge: "Virtual Care",
       title: "Telemedicine Built‑In",
-      subtitle: "Secure virtual care with consultations, prescriptions, and records in one place.",
+      subtitle:
+        "Secure virtual care with consultations, prescriptions, and records in one place.",
       c1_title: "On‑Demand Consults",
       c1_desc:
         "Book video or chat visits with licensed providers. Triage and wait‑time indicators.",
@@ -462,6 +482,7 @@ const translations = {
           transfer: "Transfer",
           wallet: "Wallet",
           payouts: "Payouts",
+          earn_online: "Earn Online",
         },
         header_title: "Dashboard",
         header_sub: "Summary of today’s activity and platform metrics.",
@@ -580,7 +601,8 @@ const translations = {
       badge: "Create your account",
       heading: "Sign up for ",
       sub: "Join to earn points, redeem, and access telemedicine securely.",
-      need_referral: "A valid referral link is required to sign up. Please request an invite link from an agent.",
+      need_referral:
+        "A valid referral link is required to sign up. Please request an invite link from an agent.",
       full_name: "Full Name",
       full_name_ph: "Jane Doe",
       email: "Email",
@@ -610,7 +632,8 @@ const translations = {
       terms_privacy: "Privacy Policy",
       creating: "Creating...",
       create_account: "Create account",
-      thanks: "Thanks! Your sign up info has been captured via referral. An agent will finalize your account.",
+      thanks:
+        "Thanks! Your sign up info has been captured via referral. An agent will finalize your account.",
       already: "Already have an account?",
       login: "Log in",
     },
@@ -683,26 +706,32 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     } catch (_) {}
     // reflect to <html lang>
     try {
-      document.documentElement.setAttribute("lang", lang === "bn" ? "bn" : "en");
+      document.documentElement.setAttribute(
+        "lang",
+        lang === "bn" ? "bn" : "en"
+      );
     } catch (_) {}
   }, [lang]);
 
   const setLang = useCallback((l: Lang) => setLangState(l), []);
 
-  const t = useCallback((key: string, vars?: Record<string, string | number>) => {
-    const parts = key.split(".");
-    let cur: any = translations[lang as Lang];
-    for (const p of parts) {
-      cur = cur?.[p];
-    }
-    let str = (typeof cur === "string" ? cur : key) as string;
-    if (vars) {
-      for (const [k, v] of Object.entries(vars)) {
-        str = str.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
+  const t = useCallback(
+    (key: string, vars?: Record<string, string | number>) => {
+      const parts = key.split(".");
+      let cur: any = translations[lang as Lang];
+      for (const p of parts) {
+        cur = cur?.[p];
       }
-    }
-    return str;
-  }, [lang]);
+      let str = (typeof cur === "string" ? cur : key) as string;
+      if (vars) {
+        for (const [k, v] of Object.entries(vars)) {
+          str = str.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
+        }
+      }
+      return str;
+    },
+    [lang]
+  );
 
   const value = useMemo(() => ({ lang, setLang, t }), [lang, setLang, t]);
 

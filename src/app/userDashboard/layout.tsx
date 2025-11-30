@@ -34,38 +34,43 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       const email = user?.email ?? "";
-      const ADMIN = "admin@fsalbd.com";
-      const AGENT = "agent@fsalbd.com";
       if (!email || !user?.uid) {
         setLoading(false);
         router.replace("/login");
         return;
       }
-      // Admin/Agent by explicit email
-      if (email === ADMIN) {
+      // Admin by explicit email
+      if (email.toLowerCase() === "admin@gesaflash.com") {
         router.replace("/admin");
         return;
       }
-      if (email === AGENT) {
-        router.replace("/agentDashboard");
-        return;
-      }
-      // Otherwise check the customers collection directly (no dependency on users collection)
+      // Check Customers (Approved true or missing means allow)
       try {
-        const cDoc = await getDoc(doc(db, "customers", user.uid));
-        if (cDoc.exists()) {
-          const c = cDoc.data() as any;
-          const status = String((c?.status ?? "Active")).toLowerCase();
-          if (status !== "active") {
+        const cRef = doc(db, "Customers", user.uid);
+        const cSnap = await getDoc(cRef);
+        if (cSnap.exists()) {
+          const c = cSnap.data() as any;
+          const approved = c?.Approved;
+          if (approved === false || String(c?.status || "Active").toLowerCase() !== "active") {
             setLoading(false);
             router.replace("/login");
             return;
           }
-          // subscribe to customer doc for name/id in sidebar
-          onSnapshot(doc(db, "customers", user.uid), (s) => setCustomer(s.exists() ? s.data() : null));
+          onSnapshot(cRef, (s) => setCustomer(s.exists() ? s.data() : null));
           setEmail(email);
           setLoading(false);
           return;
+        }
+      } catch {}
+      // If agent, redirect to agent dashboard instead of looping here
+      try {
+        const aSnap = await getDoc(doc(db, "Agents", user.uid));
+        if (aSnap.exists()) {
+          const role = String((aSnap.data() as any)?.Role || "").toLowerCase();
+          if (role === "agent") {
+            router.replace("/agentDashboard");
+            return;
+          }
         }
       } catch {}
       setLoading(false);
@@ -158,10 +163,10 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
                   </g>
                 </svg>
               </div>
-              <div className="font-semibold leading-none">{customer?.name || t("dash.common.user_badge")}</div>
+              <div className="font-semibold leading-none">{(customer as any)?.fullName || (customer as any)?.name || t("dash.common.user_badge")}</div>
             </Link>
-            {customer?.customerId && (
-              <div className="mt-2 px-2 text-xs text-foreground/70 truncate" title={customer.customerId}>ID: {customer.customerId}</div>
+            {(((customer as any)?.CustomerID) || ((customer as any)?.customerId)) && (
+              <div className="mt-2 px-2 text-xs text-foreground/70 truncate" title={((customer as any)?.CustomerID) || ((customer as any)?.customerId)}>ID: {((customer as any)?.CustomerID) || ((customer as any)?.customerId)}</div>
             )}
             <Separator className="my-3" />
             <nav className="flex-1 overflow-auto">

@@ -3,63 +3,84 @@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Gift, Wallet, Globe, Stethoscope, TrendingUp } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { auth, db } from "@/lib/firebase";
-import { collection, doc, onSnapshot, orderBy, query, limit, where } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+import { collection, doc, onSnapshot, query, where } from "firebase/firestore";
+import { TrendingUp } from "lucide-react";
 import Link from "next/link";
 
 export default function UserHomePage() {
   const { t } = useI18n();
-  const [points, setPoints] = useState<number>(0);
-  const [recentEarnings, setRecentEarnings] = useState<Array<any>>([]);
-  const [monthlyStats, setMonthlyStats] = useState({ earnings: 0, surveys: 0, tasks: 0 });
+  const [uid, setUid] = useState<string | null>(null);
+  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [bonusFromAgent, setBonusFromAgent] = useState<number>(0);
+  const [earnedOnline, setEarnedOnline] = useState<number>(0);
+  const [bonusFromAdmin, setBonusFromAdmin] = useState<number>(0);
 
   useEffect(() => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return;
-
-    // Listen to user points
-    const userRef = doc(db, "users", uid);
-    const unsubUser = onSnapshot(userRef, (snap) => {
-      const data = snap.data() as any;
-      setPoints(typeof data?.points === "number" ? data.points : 0);
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      setUid(user?.uid || null);
+      setCustomerId(null);
+      setBonusFromAgent(0);
+      setEarnedOnline(0);
+      setBonusFromAdmin(0);
+      if (user) {
+        onSnapshot(doc(db, "Customers", user.uid), (snap) => {
+          const x = (snap.data() as any) || {};
+          const cid = String(x.CustomerID || x.customerId || x.CustomerId || "").trim() || null;
+          setCustomerId(cid);
+        });
+      }
     });
-
-    // Listen to recent earnings
-    const ledgerRef = collection(db, "users", uid, "offerwall_ledger");
-    const recentQuery = query(ledgerRef, orderBy("ts", "desc"), limit(5));
-    const unsubLedger = onSnapshot(recentQuery, (snap) => {
-      setRecentEarnings(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
-
-    // Calculate monthly stats
-    const thisMonth = new Date();
-    thisMonth.setDate(1);
-    thisMonth.setHours(0, 0, 0, 0);
-    
-    const monthlyQuery = query(
-      ledgerRef, 
-      where("ts", ">=", thisMonth),
-      orderBy("ts", "desc")
-    );
-    const unsubMonthly = onSnapshot(monthlyQuery, (snap) => {
-      const docs = snap.docs.map(d => d.data());
-      const earnings = docs.reduce((sum: number, entry: any) => sum + (entry.amount || 0), 0);
-      const surveys = docs.filter((entry: any) => entry.source === 'adgem').length;
-      const tasks = docs.length;
-      setMonthlyStats({ earnings, surveys, tasks });
-    });
-
-    return () => {
-      unsubUser();
-      unsubLedger();
-      unsubMonthly();
-    };
+    return () => unsubAuth();
   }, []);
 
+  useEffect(() => {
+    if (!customerId) return;
+    const q1 = query(collection(db, "AgentToCustomerTransfer"), where("customerId", "==", customerId));
+    const unsub1 = onSnapshot(q1, (snap) => {
+      const total = snap.docs.reduce((sum, d) => {
+        const x = (d.data() as any) || {};
+        return sum + Number(x.amount || 0);
+      }, 0);
+      setBonusFromAgent(total);
+    });
+    return () => unsub1();
+  }, [customerId]);
+
+  useEffect(() => {
+    if (!customerId) return;
+    const q2 = query(collection(db, "CustomerEarningsFromOnline"), where("customerId", "==", customerId));
+    const unsub2 = onSnapshot(q2, (snap) => {
+      const total = snap.docs.reduce((sum, d) => {
+        const x = (d.data() as any) || {};
+        return sum + Number(x.pointsEarned || 0);
+      }, 0);
+      setEarnedOnline(total);
+    });
+    return () => unsub2();
+  }, [customerId]);
+
+  useEffect(() => {
+    if (!customerId) return;
+    const q3 = query(collection(db, "AdminToCustomerTransfer"), where("customerId", "==", customerId));
+    const unsub3 = onSnapshot(q3, (snap) => {
+      const total = snap.docs.reduce((sum, d) => {
+        const x = (d.data() as any) || {};
+        return sum + Number(x.amount || 0);
+      }, 0);
+      setBonusFromAdmin(total);
+    });
+    return () => unsub3();
+  }, [customerId]);
+
+  const total = useMemo(() => bonusFromAgent + earnedOnline + bonusFromAdmin, [bonusFromAgent, earnedOnline, bonusFromAdmin]);
+
   const pointsToUSD = (points: number) => (points / 100).toFixed(2);
+
+  const recentEarnings: any[] = [];
 
   return (
     <div className="space-y-6">
@@ -70,7 +91,7 @@ export default function UserHomePage() {
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="bg-emerald-500/15 text-emerald-600">
-            {points} Points
+            {total} Points
           </Badge>
           <Link href="/userDashboard/earnings">
             <Button size="sm" className="bg-[var(--brand)] text-black hover:brightness-110">
@@ -82,28 +103,10 @@ export default function UserHomePage() {
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <CardStat 
-          icon={<Wallet className="h-4 w-4" />} 
-          label={t("dash.user.nav.earnings")} 
-          value={`$${pointsToUSD(points)}`} 
-          delta={monthlyStats.earnings > 0 ? `+${monthlyStats.earnings} pts` : "No activity"} 
-          tone={{ bg: "bg-emerald-500/15", text: "text-emerald-600 dark:text-emerald-300" }} 
-        />
-        <CardStat 
-          icon={<Gift className="h-4 w-4" />} 
-          label={"Surveys Completed"} 
-          value={monthlyStats.surveys.toString()} 
-          delta="This month" 
-          tone={{ bg: "bg-violet-500/15", text: "text-violet-600 dark:text-violet-300" }} 
-        />
-        <CardStat 
-          icon={<Globe className="h-4 w-4" />} 
-          label={"Total Tasks"} 
-          value={`${monthlyStats.tasks} tasks`} 
-          delta="This month" 
-          tone={{ bg: "bg-sky-500/15", text: "text-sky-600 dark:text-sky-300" }} 
-        />
-        {/* Telemedicine card removed as requested */}
+        <SummaryCard label="Total Earnings" value={`${total} pts`} delta={"—"} />
+        <SummaryCard label="Bonus from Agent" value={`${bonusFromAgent} pts`} delta={"—"} />
+        <SummaryCard label="Earned Online" value={`${earnedOnline} pts`} delta={"—"} />
+        <SummaryCard label="Bonus from Admin" value={`${bonusFromAdmin} pts`} delta={"—"} />
       </section>
 
       <section className="rounded-xl border border-black/10 dark:border-white/10 bg-[var(--surface)]/60 dark:bg-white/5">
@@ -119,7 +122,7 @@ export default function UserHomePage() {
         <ul className="divide-y divide-black/10 dark:divide-white/10">
           {recentEarnings.length > 0 ? recentEarnings.map((earning) => {
             const isPositive = earning.amount >= 0;
-            const source = earning.source === 'adgem' ? 'AdGem Offer' :
+            const source = earning.source === 'adsterra' ? 'Offer' :
                           earning.source?.includes('chargeback') ? 'Offer Refund' :
                           earning.offer_name || 'Earning Task';
             
@@ -136,17 +139,17 @@ export default function UserHomePage() {
                     }`}>
                       {isPositive ? '+' : ''}{earning.amount} points
                     </span>
-                    {' '}(${'{'}{pointsToUSD(Math.abs(earning.amount))}{'}'})
+                    
                   </div>
                   <Badge 
                     variant="outline" 
                     className={`ml-2 ${
-                      earning.source === 'adgem' ? 'bg-emerald-500/15 text-emerald-600 border-emerald-200' :
+                      earning.source === 'adsterra' ? 'bg-emerald-500/15 text-emerald-600 border-emerald-200' :
                       earning.source?.includes('chargeback') ? 'bg-red-500/15 text-red-600 border-red-200' :
                       'bg-blue-500/15 text-blue-600 border-blue-200'
                     }`}
                   >
-                    {earning.source === 'adgem' ? 'Offer' :
+                    {earning.source === 'adsterra' ? 'Offer' :
                      earning.source?.includes('chargeback') ? 'Refund' :
                      'Task'}
                   </Badge>
@@ -168,6 +171,17 @@ export default function UserHomePage() {
           )}
         </ul>
       </section>
+    </div>
+  );
+}
+
+function SummaryCard({ label, value, delta }: { label: string; value: string; delta: string }) {
+  const positive = delta.startsWith("+");
+  return (
+    <div className="rounded-xl border border-black/10 dark:border-white/10 bg-[var(--surface-2)] p-4">
+      <div className="text-sm text-foreground/70">{label}</div>
+      <div className="mt-1 text-2xl font-semibold tracking-tight">{value}</div>
+      <div className={`mt-1 text-xs ${positive ? "text-emerald-600 dark:text-emerald-300" : "text-rose-600 dark:text-rose-300"}`}>{delta}</div>
     </div>
   );
 }

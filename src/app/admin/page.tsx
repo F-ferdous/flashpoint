@@ -7,19 +7,47 @@ import { Button } from "@/components/ui/button";
 import { Users } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { db } from "@/lib/firebase";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 
 export default function AdminDashboardPage() {
   const { t } = useI18n();
   const [agentCount, setAgentCount] = useState(0);
   const [customerCount, setCustomerCount] = useState(0);
+  const [totalPts, setTotalPts] = useState(0);
 
   useEffect(() => {
-    const unsubAgents = onSnapshot(collection(db, "agents"), (snap) => setAgentCount(snap.size));
-    const unsubCustomers = onSnapshot(collection(db, "customers"), (snap) => setCustomerCount(snap.size));
+    const unsubAgents = onSnapshot(collection(db, "Agents"), (snap) => {
+      setAgentCount(snap.size || 0);
+    });
+    const unsubCustomers = onSnapshot(query(collection(db, "Customers"), where("Approved", "==", true)), (snap) => {
+      setCustomerCount(snap.size || 0);
+    });
+    // Sum Points + CustomerEarnings across all customers
+    let sumPoints = 0;
+    let sumEarnAgg = 0;
+    const unsubPoints = onSnapshot(collection(db, "Points"), (snap) => {
+      sumPoints = snap.docs.reduce((acc, d) => {
+        const x: any = d.data();
+        // Only count customer docs; defensive check
+        if (String(x?.type || "customer").toLowerCase() !== "customer") return acc;
+        const pts = Number(x?.totalPoints ?? 0);
+        return acc + (Number.isFinite(pts) ? pts : 0);
+      }, 0);
+      setTotalPts(sumPoints + sumEarnAgg);
+    });
+    const unsubCustEarn = onSnapshot(collection(db, "CustomerEarnings"), (snap) => {
+      sumEarnAgg = snap.docs.reduce((acc, d) => {
+        const x: any = d.data();
+        const pts = Number(x?.totalEarned ?? 0);
+        return acc + (Number.isFinite(pts) ? pts : 0);
+      }, 0);
+      setTotalPts(sumPoints + sumEarnAgg);
+    });
     return () => {
       unsubAgents();
       unsubCustomers();
+      unsubPoints();
+      unsubCustEarn();
     };
   }, []);
 
@@ -45,6 +73,11 @@ export default function AdminDashboardPage() {
             <CardStat icon={<Users className="h-4 w-4 sm:h-5 sm:w-5" />} label={label} value={String(customerCount)} delta="" tone={{ bg: "bg-sky-500/15", text: "text-sky-600 dark:text-sky-300" }} />
           );
         })()}
+      </section>
+
+      {/* Global points earnings (all time) */}
+      <section className="grid gap-3 sm:gap-4 grid-cols-1">
+        <CardStat icon={<Users className="h-4 w-4 sm:h-5 sm:w-5" />} label="Total Points (All Customers)" value={`${totalPts} pts`} delta="" tone={{ bg: "bg-violet-500/15", text: "text-violet-600 dark:text-violet-300" }} />
       </section>
 
       <section className="rounded-xl border border-black/10 dark:border-white/10 bg-[var(--surface)]/60 dark:bg-white/5">
