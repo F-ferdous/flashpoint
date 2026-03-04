@@ -187,14 +187,21 @@ export default function Navbar() {
               {t("common.points")}
             </Link>
             <Link
-              href="/coming-soon"
+              href="/flash-card"
               className="text-md hover:opacity-80 hover:text-[var(--brand)] transition-opacity"
             >
               {t("common.services")}
             </Link>
 
             <Link
-              href="/contact"
+              href="/about"
+              className="text-md hover:opacity-80 hover:text-[var(--brand)] transition-opacity"
+            >
+              {lang === "en" ? "About Us" : t("footer.about")}
+            </Link>
+
+            <Link
+              href="/recruitment"
               className="text-md hover:opacity-80 hover:text-[var(--brand)] transition-opacity"
             >
               {t("common.contact")}
@@ -433,13 +440,19 @@ export default function Navbar() {
               {t("common.points")}
             </Link>
             <Link
-              href="/coming-soon"
+              href="/flash-card"
               className="px-2 py-2 rounded hover:bg-black/5 dark:hover:bg-white/10"
             >
               {t("common.services")}
             </Link>
             <Link
-              href="/contact"
+              href="/about"
+              className="px-2 py-2 rounded hover:bg-black/5 dark:hover:bg-white/10"
+            >
+              {lang === "en" ? "About Us" : t("footer.about")}
+            </Link>
+            <Link
+              href="/recruitment"
               className="px-2 py-2 rounded hover:bg-black/5 dark:hover:bg-white/10"
             >
               {t("common.contact")}

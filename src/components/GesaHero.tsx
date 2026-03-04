@@ -30,10 +30,16 @@ export default function GesaHero() {
             </p>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              <Link href="/signup" className="btn-pill px-5 py-2.5 text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700">
+              <Link
+                href="/signup"
+                className="btn-pill px-5 py-2.5 text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700"
+              >
                 {t("gesa.hero_cta_primary")}
               </Link>
-              <Link href="/coming-soon" className="btn-pill px-5 py-2.5 text-sm font-medium border border-emerald-300 text-emerald-800 hover:bg-white/60">
+              <Link
+                href="/roadmap"
+                className="btn-pill px-5 py-2.5 text-sm font-medium border border-emerald-300 text-emerald-800 hover:bg-white/60"
+              >
                 {t("gesa.hero_cta_secondary")}
               </Link>
             </div>

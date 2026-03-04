@@ -102,10 +102,7 @@ export default function Footer() {
                 </h5>
                 <ul className="space-y-2 text-sm text-white/80">
                   <li>
-                    <Link
-                      href="/coming-soon"
-                      className="hover:text-emerald-200"
-                    >
+                    <Link href="/about" className="hover:text-emerald-200">
                       {t("footer.about")}
                     </Link>
                   </li>

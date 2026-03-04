@@ -20,7 +20,7 @@ const translations = {
       login: "লগ ইন",
       get_started: "শুরু করুন",
       pricing: "মূল্য",
-      contact: "যোগাযোগ",
+      contact: "নিয়োগ বিজ্ঞপ্তি",
       points: "পয়েন্টস",
       earning: "আর্নিং",
       telemedicine: "টেলিমেডিসিন",
@@ -36,7 +36,7 @@ const translations = {
       hero_badge: "GESA Flash Bangladesh",
       hero_h1_p1: "GESA Flash – দক্ষতা,",
       hero_h1_p2: "স্বাস্থ্য ও প্রযুক্তির সমন্বয়ে",
-      hero_h1_p3: "সক্ষম বাংলাদেশ",
+      hero_h1_p3: "সমৃদ্ধ বাংলাদেশ",
       hero_sub:
         "শিক্ষা, স্বাস্থ্য, উদ্যোক্তা উন্নয়ন ও সাধারণ কল্যাণের জন্য প্রযুক্তি চালিত উদ্যোগ।",
       hero_cta_primary: "এখনই যোগ দিন",
@@ -67,6 +67,24 @@ const translations = {
       cta_band_sub:
         "দক্ষতা, স্বাস্থ্য ও প্রযুক্তির সমন্বয়ে গড়ি স্বনির্ভর বাংলাদেশ।",
       cta_band_btn: "এখনই যোগ দিন",
+      flash_title: "GESA ফ্ল্যাশ কার্ড",
+      flash_desc:
+        "আপনার প্রতিদিনের কেনাকাটা, বিল পেমেন্ট, টেলিমেডিসিন ও আরও অনেক কিছুর জন্য এক কার্ডে ডিসকাউন্ট, পয়েন্ট ও সুবিধা।",
+      flash_btn_details: "বিস্তারিত",
+      flash_btn_apply: "কার্ডের জন্য আবেদন করুন",
+      apply_title: "কার্ডের জন্য আবেদন",
+      apply_desc:
+        "ফর্মটি পূরণ করুন। আমাদের টিম আপনার সাথে দ্রুতই যোগাযোগ করবে।",
+      apply_name: "নাম",
+      apply_age: "বয়স",
+      apply_phone: "মোবাইল নম্বর",
+      apply_address: "ঠিকানা",
+      apply_occupation: "পেশা",
+      apply_nid: "এনআইডি নম্বর",
+      apply_submit: "সাবমিট করুন",
+      apply_submitting: "সাবমিট হচ্ছে...",
+      apply_success:
+        "ফর্ম সাবমিট হয়েছে, কনফার্মেশনের জন্য অপেক্ষা করুন। আগ্রহের জন্য ধন্যবাদ।",
     },
     dash: {
       common: {
@@ -95,6 +113,7 @@ const translations = {
           wallet: "ওয়ালেট",
           payouts: "পেআউটস",
           earn_online: "অনলাইনে আয়",
+          observer_apps: "পর্যবেক্ষক আবেদন",
         },
         header_title: "ড্যাশবোর্ড",
         header_sub: "আজকের কার্যকলাপ ও প্ল্যাটফর্ম পরিসংখ্যানের সারসংক্ষেপ।",
@@ -354,7 +373,7 @@ const translations = {
       login: "Log In",
       get_started: "Get Started",
       pricing: "Pricing",
-      contact: "Contact",
+      contact: "Recruitment",
       points: "Points",
       earning: "Earning",
       telemedicine: "Telemedicine",
@@ -370,7 +389,7 @@ const translations = {
       hero_badge: "GESA Flash Bangladesh",
       hero_h1_p1: "GESA Flash – Skills,",
       hero_h1_p2: "Health & Technology for",
-      hero_h1_p3: "an Enabled Bangladesh",
+      hero_h1_p3: "a Better Bangladesh",
       hero_sub:
         "Technology‑driven services for education, health, entrepreneurship and public good.",
       hero_cta_primary: "Join Now",
@@ -401,6 +420,23 @@ const translations = {
       cta_band_sub:
         "Let’s build a self‑reliant Bangladesh with skills, health and tech.",
       cta_band_btn: "Join Now",
+      flash_title: "GESA Flash Card",
+      flash_desc:
+        "One smart card for everyday purchases, bill payments, telemedicine and more — with discounts, points and benefits.",
+      flash_btn_details: "Details",
+      flash_btn_apply: "Apply for Card",
+      apply_title: "Apply for Card",
+      apply_desc: "Fill up the form. Our team will contact you shortly.",
+      apply_name: "Full Name",
+      apply_age: "Age",
+      apply_phone: "Mobile Number",
+      apply_address: "Address",
+      apply_occupation: "Occupation",
+      apply_nid: "NID Number",
+      apply_submit: "Submit",
+      apply_submitting: "Submitting...",
+      apply_success:
+        "Form Submitted, Wait for Confirmation. Thnak you for your interest.",
     },
     navbar: {
       aria_home: "Flash Services Agency Home",
@@ -483,6 +519,7 @@ const translations = {
           wallet: "Wallet",
           payouts: "Payouts",
           earn_online: "Earn Online",
+          observer_apps: "Observer Applications",
         },
         header_title: "Dashboard",
         header_sub: "Summary of today’s activity and platform metrics.",

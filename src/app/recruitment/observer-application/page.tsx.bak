@@ -1,0 +1,587 @@
+"use client";
+
+import { useRef, useState } from "react";
+import { db, storage } from "@/lib/firebase";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
+export default function ObserverApplicationPage() {
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [name, setName] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [fileErrors, setFileErrors] = useState<{
+    photo?: string;
+    cert?: string;
+    nid?: string;
+    sig?: string;
+  }>({});
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  // previews
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [certFileName, setCertFileName] = useState<string | null>(null);
+  const [certUrl, setCertUrl] = useState<string | null>(null);
+  const [nidFileName, setNidFileName] = useState<string | null>(null);
+  const [nidUrl, setNidUrl] = useState<string | null>(null);
+  const [sigUrl, setSigUrl] = useState<string | null>(null);
+
+  // file inputs
+  const photoRef = useRef<HTMLInputElement | null>(null);
+  const certRef = useRef<HTMLInputElement | null>(null);
+  const nidRef = useRef<HTMLInputElement | null>(null);
+  const sigRef = useRef<HTMLInputElement | null>(null);
+
+  function onFileSelect(
+    e: React.ChangeEvent<HTMLInputElement>,
+    kind: "photo" | "cert" | "nid" | "sig"
+  ) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const MAX = 1 * 1024 * 1024; // 1MB
+    if (f.size > MAX) {
+      setFileErrors((prev) => ({
+        ...prev,
+        [kind]: "ফাইলের সর্বোচ্চ সাইজ 1MB",
+      }));
+      e.target.value = "";
+      return;
+    } else {
+      setFileErrors((prev) => ({ ...prev, [kind]: undefined }));
+    }
+    if (kind === "photo" || kind === "sig") {
+      if (!f.type.startsWith("image/")) {
+        setFileErrors((prev) => ({
+          ...prev,
+          [kind]: "শুধুমাত্র ছবি আপলোড করা যাবে",
+        }));
+        e.target.value = "";
+        return;
+      }
+      const url = URL.createObjectURL(f);
+      if (kind === "photo") setPhotoUrl(url);
+      if (kind === "sig") setSigUrl(url);
+    } else {
+      if (!(f.type === "application/pdf" || f.type.startsWith("image/"))) {
+        setFileErrors((prev) => ({
+          ...prev,
+          [kind]: "শুধুমাত্র JPG, PNG অথবা PDF ফাইল আপলোড করুন",
+        }));
+        e.target.value = "";
+        return;
+      }
+      if (kind === "cert") {
+        setCertFileName(f.name);
+        setCertUrl(
+          f.type === "application/pdf" ? null : URL.createObjectURL(f)
+        );
+      }
+      if (kind === "nid") {
+        setNidFileName(f.name);
+        setNidUrl(f.type === "application/pdf" ? null : URL.createObjectURL(f));
+      }
+    }
+  }
+
+  function remove(
+    kind: "photo" | "cert" | "nid" | "sig",
+    input?: HTMLInputElement | null
+  ) {
+    if (input) input.value = "";
+    if (kind === "photo") setPhotoUrl(null);
+    if (kind === "sig") setSigUrl(null);
+    if (kind === "cert") {
+      setCertFileName(null);
+      setCertUrl(null);
+    }
+    if (kind === "nid") {
+      setNidFileName(null);
+      setNidUrl(null);
+    }
+  }
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!/^[0-9]{11}$/.test(mobile)) {
+      alert("অনুগ্রহ করে সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন।");
+      return;
+    }
+    // gather inputs and validate empties for inline errors
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+    const newFieldErrors: Record<string, string> = {};
+    const requiredNames = [
+      "fullName",
+      "dob",
+      "nidNumber",
+      "address",
+      "mobile",
+      "education",
+      "ref1_name",
+      "ref1_mobile",
+      "ref1_nid",
+      "ref1_address",
+      "ref2_name",
+      "ref2_mobile",
+      "ref2_nid",
+      "ref2_address",
+    ];
+    requiredNames.forEach((n) => {
+      const v = (fd.get(n) as string) || "";
+      if (!v.trim()) newFieldErrors[n] = "এই ঘরটি আবশ্যক";
+    });
+    setFieldErrors(newFieldErrors);
+    if (Object.keys(newFieldErrors).length > 0) return;
+    // ensure files
+    const photo = photoRef.current?.files?.[0];
+    const cert = certRef.current?.files?.[0];
+    const nid = nidRef.current?.files?.[0];
+    const sig = sigRef.current?.files?.[0];
+    const errs: typeof fileErrors = {};
+    if (!photo) errs.photo = "এই ফাইলটি আবশ্যক";
+    if (!cert) errs.cert = "এই ফাইলটি আবশ্যক";
+    if (!nid) errs.nid = "এই ফাইলটি আবশ্যক";
+    if (!sig) errs.sig = "এই ফাইলটি আবশ্যক";
+    if (errs.photo || errs.cert || errs.nid || errs.sig) {
+      setFileErrors((prev) => ({ ...prev, ...errs }));
+      return;
+    }
+
+    // collect data
+    const payload = {
+      name: fd.get("fullName") as string,
+      dob: fd.get("dob") as string,
+      nidNumber: fd.get("nidNumber") as string,
+      address: fd.get("address") as string,
+      mobile: fd.get("mobile") as string,
+      education: fd.get("education") as string,
+      ref1: {
+        name: fd.get("ref1_name") as string,
+        mobile: fd.get("ref1_mobile") as string,
+        nid: fd.get("ref1_nid") as string,
+        address: fd.get("ref1_address") as string,
+      },
+      ref2: {
+        name: fd.get("ref2_name") as string,
+        mobile: fd.get("ref2_mobile") as string,
+        nid: fd.get("ref2_nid") as string,
+        address: fd.get("ref2_address") as string,
+      },
+    };
+
+    try {
+      setSubmitting(true);
+      const ts = Date.now();
+      const [pSnap, cSnap, nSnap, sSnap] = await Promise.all([
+        uploadBytes(ref(storage, `electionObserver/${ts}/photo`), photo!),
+        uploadBytes(ref(storage, `electionObserver/${ts}/certificate`), cert!),
+        uploadBytes(ref(storage, `electionObserver/${ts}/nid`), nid!),
+        uploadBytes(ref(storage, `electionObserver/${ts}/signature`), sig!),
+      ]);
+      const [photoURL, certURL, nidURL, sigURL] = await Promise.all([
+        getDownloadURL(pSnap.ref),
+        getDownloadURL(cSnap.ref),
+        getDownloadURL(nSnap.ref),
+        getDownloadURL(sSnap.ref),
+      ]);
+
+      await addDoc(collection(db, "ElectionObserverForm"), {
+        ...payload,
+        files: { photoURL, certURL, nidURL, sigURL },
+        createdAt: serverTimestamp(),
+      });
+
+      setSuccess(true);
+    } catch (err) {
+      console.error(err);
+      alert("দুঃখিত! আবেদন জমা দিতে সমস্যা হয়েছে। পরে আবার চেষ্টা করুন।");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="bg-[var(--background)] text-[var(--foreground)]">
+      <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-600/10 text-emerald-800 ring-1 ring-emerald-300 text-xs">
+            <span className="size-2 rounded-full bg-emerald-500" />
+            ত্রয়োদশ জাতীয় সংসদ নির্বাচন ২০২৬
+          </div>
+          <h1 className="mt-3 text-2xl sm:text-3xl font-extrabold tracking-tight text-emerald-900">
+            পর্যবেক্ষক আবেদন ফরম (EO-2)
+          </h1>
+          <p className="mt-2 text-sm sm:text-base text-muted-foreground">
+            প্রদত্ত নির্দেশনা অনুযায়ী তথ্য প্রদান করুন।
+          </p>
+        </div>
+
+        {!success ? (
+          <form
+            onSubmit={onSubmit}
+            className="rounded-2xl bg-[var(--surface-2)] ring-1 ring-black/10 dark:ring-white/10 p-6 md:p-8 space-y-6"
+          >
+            <p className="text-sm text-muted-foreground">
+              অনুগ্রহ করে সঠিক তথ্য প্রদান করুন। জাতীয় পরিচয়পত্র অনুযায়ী নাম
+              ও তথ্য লিখুন।
+            </p>
+
+            <div>
+              <h3 className="text-lg font-semibold border-l-4 border-emerald-600 pl-3">
+                ব্যক্তিগত তথ্য
+              </h3>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                পূর্ণ নাম (বাংলায়)
+              </label>
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg ring-1 ring-black/10 dark:ring-white/10 bg-white focus:outline-none focus:ring-emerald-500"
+                placeholder="জাতীয় পরিচয়পত্র অনুযায়ী আপনার নাম"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  জন্মতারিখ
+                </label>
+                <input
+                  type="date"
+                  required
+                  className="w-full px-3 py-2 rounded-lg ring-1 ring-black/10 dark:ring-white/10 bg-white focus:outline-none focus:ring-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  জাতীয় পরিচয়পত্র (NID) নম্বর
+                </label>
+                <input
+                  type="number"
+                  required
+                  className="w-full px-3 py-2 rounded-lg ring-1 ring-black/10 dark:ring-white/10 bg-white focus:outline-none focus:ring-emerald-500"
+                  placeholder="১০/১৩/১৭ ডিজিট"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                স্থায়ী ঠিকানা
+              </label>
+              <textarea
+                rows={2}
+                required
+                className="w-full px-3 py-2 rounded-lg ring-1 ring-black/10 dark:ring-white/10 bg-white focus:outline-none focus:ring-emerald-500"
+                placeholder="বাসা, গ্রাম/মহল্লা, থানা, জেলা"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  মোবাইল নম্বর
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value)}
+                  pattern="[0-9]{11}"
+                  className="w-full px-3 py-2 rounded-lg ring-1 ring-black/10 dark:ring-white/10 bg-white focus:outline-none focus:ring-emerald-500"
+                  placeholder="01XXXXXXXXX"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  ১১ ডিজিটের নম্বর দিন
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  সর্বশেষ শিক্ষাগত যোগ্যতা
+                </label>
+                <select
+                  required
+                  className="w-full px-3 py-2 rounded-lg ring-1 ring-black/10 dark:ring-white/10 bg-white focus:outline-none focus:ring-emerald-500"
+                >
+                  <option value="">নির্বাচন করুন</option>
+                  <option value="SSC">এস.এস.সি / সমমান</option>
+                  <option value="HSC">এইচ.এস.সি / সমমান</option>
+                  <option value="Bachelor">স্নাতক / অনার্স / সমমান</option>
+                  <option value="Masters">স্নাতকোত্তর / মাস্টার্স</option>
+                  <option value="PhD">পিএইচডি / অন্যান্য</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold border-l-4 border-emerald-600 pl-3">
+                রেফারেন্স তথ্য
+              </h3>
+              <p className="text-xs text-muted-foreground mt-2">
+                দুজন সুপরিচিত ব্যক্তির নাম, এনআইডি, ঠিকানা ও ফোন নম্বর দিন।
+                (আত্মীয়/প্রার্থী/দলের নেতা নন)
+              </p>
+              <div className="grid gap-4 mt-4">
+                <div className="bg-[var(--surface-1)] rounded-lg ring-1 ring-black/10 dark:ring-white/10 p-4">
+                  <h4 className="font-semibold text-emerald-800 mb-2">
+                    ১ম রেফারেন্সকারী
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input
+                      className="px-3 py-2 rounded ring-1 ring-black/10 bg-white"
+                      placeholder="নাম"
+                      required
+                    />
+                    <input
+                      className="px-3 py-2 rounded ring-1 ring-black/10 bg-white"
+                      placeholder="মোবাইল নম্বর"
+                      required
+                    />
+                    <input
+                      className="px-3 py-2 rounded ring-1 ring-black/10 bg-white"
+                      placeholder="NID নম্বর"
+                      required
+                    />
+                    <input
+                      className="px-3 py-2 rounded ring-1 ring-black/10 bg-white"
+                      placeholder="ঠিকানা (সংক্ষেপে)"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="bg-[var(--surface-1)] rounded-lg ring-1 ring-black/10 dark:ring-white/10 p-4">
+                  <h4 className="font-semibold text-emerald-800 mb-2">
+                    ২য় রেফারেন্সকারী
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input
+                      className="px-3 py-2 rounded ring-1 ring-black/10 bg-white"
+                      placeholder="নাম"
+                      required
+                    />
+                    <input
+                      className="px-3 py-2 rounded ring-1 ring-black/10 bg-white"
+                      placeholder="মোবাইল নম্বর"
+                      required
+                    />
+                    <input
+                      className="px-3 py-2 rounded ring-1 ring-black/10 bg-white"
+                      placeholder="NID নম্বর"
+                      required
+                    />
+                    <input
+                      className="px-3 py-2 rounded ring-1 ring-black/10 bg-white"
+                      placeholder="ঠিকানা (সংক্ষেপে)"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold border-l-4 border-emerald-600 pl-3">
+                প্রয়োজনীয় কাগজপত্র
+              </h3>
+              <div className="grid gap-6 mt-4">
+                {/* Photo */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2">
+                    পাসপোর্ট সাইজ ছবি
+                  </label>
+                  <div className="relative border-2 border-dashed rounded-lg p-4 text-center">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => onFileSelect(e, "photo")}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                    />
+                    {photoUrl ? (
+                      <img
+                        src={photoUrl}
+                        alt="preview"
+                        className="max-h-48 mx-auto object-contain"
+                      />
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        ছবি নির্বাচন করতে ক্লিক করুন
+                      </p>
+                    )}
+                    {photoUrl && (
+                      <button
+                        type="button"
+                        onClick={(e) =>
+                          remove(
+                            "photo",
+                            (e.currentTarget
+                              .previousSibling as HTMLInputElement) || null
+                          )
+                        }
+                        className="mt-2 text-sm text-red-600"
+                      >
+                        বাতিল করুন
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {/* Certificate */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2">
+                    শিক্ষাগত সনদ
+                  </label>
+                  <div className="relative border-2 border-dashed rounded-lg p-4 text-center">
+                    <input
+                      type="file"
+                      accept=".jpg,.jpeg,.png,.pdf"
+                      onChange={(e) => onFileSelect(e, "cert")}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                    />
+                    {certFileName ? (
+                      <p className="text-sm font-medium">{certFileName}</p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        ফাইল নির্বাচন করুন (JPG/PNG/PDF)
+                      </p>
+                    )}
+                    {certUrl && (
+                      <img
+                        src={certUrl}
+                        alt="preview"
+                        className="max-h-48 mx-auto object-contain mt-2"
+                      />
+                    )}
+                    {certFileName && (
+                      <button
+                        type="button"
+                        onClick={() => remove("cert")}
+                        className="mt-2 text-sm text-red-600"
+                      >
+                        বাতিল করুন
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {/* NID */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2">
+                    জাতীয় পরিচয়পত্র (NID)
+                  </label>
+                  <div className="relative border-2 border-dashed rounded-lg p-4 text-center">
+                    <input
+                      type="file"
+                      accept=".jpg,.jpeg,.png,.pdf"
+                      onChange={(e) => onFileSelect(e, "nid")}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                    />
+                    {nidFileName ? (
+                      <p className="text-sm font-medium">{nidFileName}</p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        ফাইল নির্বাচন করুন (JPG/PNG/PDF)
+                      </p>
+                    )}
+                    {nidUrl && (
+                      <img
+                        src={nidUrl}
+                        alt="preview"
+                        className="max-h-48 mx-auto object-contain mt-2"
+                      />
+                    )}
+                    {nidFileName && (
+                      <button
+                        type="button"
+                        onClick={() => remove("nid")}
+                        className="mt-2 text-sm text-red-600"
+                      >
+                        বাতিল করুন
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {/* Signature */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2">
+                    স্বাক্ষর
+                  </label>
+                  <div className="relative border-2 border-dashed rounded-lg p-4 text-center">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => onFileSelect(e, "sig")}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                    />
+                    {sigUrl ? (
+                      <img
+                        src={sigUrl}
+                        alt="preview"
+                        className="max-h-48 mx-auto object-contain"
+                      />
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        স্বাক্ষরের ছবি নির্বাচন করুন
+                      </p>
+                    )}
+                    {sigUrl && (
+                      <button
+                        type="button"
+                        onClick={() => remove("sig")}
+                        className="mt-2 text-sm text-red-600"
+                      >
+                        বাতিল করুন
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <label className="inline-flex items-start gap-2 text-sm">
+              <input type="checkbox" required className="mt-1" />
+              <span>আমি শপথ করছি যে প্রদত্ত সকল তথ্য ও কাগজপত্র সত্য।</span>
+            </label>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full btn-pill px-5 py-3 text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-70"
+            >
+              {submitting ? "জমা হচ্ছে..." : "আবেদন জমা দিন"}
+            </button>
+          </form>
+        ) : (
+          <div className="rounded-2xl bg-white ring-1 ring-emerald-200 p-10 text-center">
+            <div className="mx-auto w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
+              <svg
+                viewBox="0 0 24 24"
+                className="h-7 w-7 text-emerald-700"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold mb-1">আবেদন সফল হয়েছে!</h3>
+            <p className="text-muted-foreground">
+              আপনার তথ্য আমাদের ডাটাবেসে সংরক্ষিত হয়েছে। প্রাথমিক যাচাই শেষে
+              যোগাযোগ করা হবে।
+            </p>
+            <button
+              onClick={() => setSuccess(false)}
+              className="mt-6 btn-pill px-5 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700"
+            >
+              নতুন আবেদন করুন
+            </button>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
